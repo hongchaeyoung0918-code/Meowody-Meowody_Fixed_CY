@@ -1,0 +1,100 @@
+﻿{
+    "dialogues": [
+      {
+        "id": "1-2_1",
+        "speaker": "Manager",
+        "name": "매니저",
+        "text": "너 같은 재능은 도시에서도 통할 거야.",
+        "position": "Right",
+        "nextDialogueId": "1-2_2"
+      },
+      {
+        "id": "1-2_2",
+        "speaker": "Player",
+        "name": "주인공",
+        "text": "(놀라며 눈을 동그랗게 뜬다.)",
+        "position": "Left",
+        "nextDialogueId": "2-2_1"
+      },
+      {
+        "id": "2-2_1",
+        "speaker": "GirlFan",
+        "name": "소녀 팬",
+        "text": "노래, 정말 멋져요! (수줍게 작은 꽃을 건넨다)",
+        "position": "Right",
+        "nextDialogueId": "2-2_2"
+      },
+      {
+        "id": "2-2_2",
+        "speaker": "Player",
+        "name": "주인공",
+        "text": "아... 고마워. (꽃을 받으며) 하지만, 도시 사람들은 내 노래를 너무 밋밋하게 느끼는 것 같아.",
+        "position": "Left",
+        "nextDialogueId": "2-2_3"
+      },
+      {
+        "id": "2-2_3",
+        "speaker": "GirlFan",
+        "name": "소녀 팬",
+        "text": "아니에요! 다들 무표정해 보여도, 노래가 끝나니까 제 주변에 회색이 사라지고 색깔이 돌아왔어요.",
+        "position": "Right",
+        "nextDialogueId": "2-2_4"
+      },
+      {
+        "id": "2-2_4",
+        "speaker": "Player",
+        "name": "주인공",
+        "text": "그건 잠시뿐일 거야. 도시의 화려한 음악에 익숙해지면, 내 시골 멜로디는 금방 잊힐 테고...",
+        "position": "Left",
+        "nextDialogueId": "2-2_5"
+      },
+      {
+        "id": "2-2_5",
+        "speaker": "GirlFan",
+        "name": "소녀 팬",
+        "text": "잊히지 않아요! 당신의 노래는 화려하지 않아도, 따뜻하고 편안해요. 마치 햇볕 아래에서 쉬는 것처럼요.",
+        "position": "Right",
+        "nextDialogueId": "2-2_6"
+      },
+      {
+        "id": "2-2_6",
+        "speaker": "GirlFan",
+        "name": "소녀 팬",
+        "text": "다른 사람들이 뭐라고 하든, 당신의 멜로디를 믿고 계속 연주해 주세요! 제가 항상 응원할게요.",
+        "position": "Right",
+        "nextDialogueId": "2-2_7"
+      },
+      {
+        "id": "2-2_7",
+        "speaker": "Player",
+        "name": "주인공",
+        "text": "(따뜻한 미소를 짓는다) 고마워. 네 말이 내게 큰 힘이 됐어.",
+        "position": "Left",
+        "nextDialogueId": "2-3_1"
+      },
+      {
+        "id": "2-3_1",
+        "speaker": "RivalWolf",
+        "name": "라이벌 늑대",
+        "text": "흥, 저런 시골 감성 노래로... (짧은 자기소개와 시비조)",
+        "position": "Left",
+        "nextDialogueId": "2-3_2"
+      },
+      {
+        "id": "2-3_2",
+        "speaker": "Player",
+        "name": "주인공",
+        "text": "(겉으로는 밝게 웃지만, 속으론 조금 상처받는다.)",
+        "position": "Right",
+        "nextDialogueId": "3-3_1"
+      },
+      {
+        "id": "3-3_1",
+        "speaker": "RivalWolf",
+        "name": "라이벌 늑대",
+        "text": "무대는 네가 설 자리가 아니야.",
+        "position": "Left",
+        "nextDialogueId": "End"
+      }
+    ]
+}
