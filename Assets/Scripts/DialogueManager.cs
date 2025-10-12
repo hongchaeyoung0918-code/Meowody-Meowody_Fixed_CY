@@ -7,31 +7,48 @@ using TMPro;
 public class DialogueManager : MonoBehaviour
 {
     [Header("UI Elements")]
-    public GameObject dialoguePanel;      // 대화창 전체 Panel
+    public GameObject dialoguePanel;
     public TMP_Text nameText;
     public TMP_Text dialogueText;
 
     [Header("Character Sprites")]
-    public GameObject leftCharacterPanel;  // 왼쪽 스탠딩 일러스트 패널
-    public Image leftCharacterImage;      // 왼쪽 캐릭터 Image 컴포넌트
-    public GameObject rightCharacterPanel; // 오른쪽 스탠딩 일러스트 패널
+    public GameObject leftCharacterPanel;
+    public Image leftCharacterImage;
+    public GameObject rightCharacterPanel;
     public Image rightCharacterImage;
 
-    // 스프라이트 딕셔너리 (캐릭터 이름으로 스프라이트를 관리)
     public Dictionary<string, Sprite> characterSprites = new Dictionary<string, Sprite>();
 
     private Dictionary<string, Dialogue> dialogueDictionary;
     private Dialogue currentDialogue;
+    private MainUIManager mainUIManager;
+    private int activeStage;
+
+    private void Awake()
+    {
+        mainUIManager = FindFirstObjectByType<MainUIManager>();
+        if (mainUIManager == null)
+        {
+            Debug.LogError("MainUIManager를 씬에서 찾을 수 없습니다.");
+        }
+
+        LoadDialogueData("Dialogue");
+        LoadCharacterSprites();
+        dialoguePanel.SetActive(false);
+    }
+
     void Start()
     {
-        // 1. JSON 데이터 로드 및 파싱
-        LoadDialogueData("Dialogue");
+        activeStage = GameSettings.SelectedStage;
 
-        // 2. 캐릭터 스프라이트 리소스 로드
-        LoadCharacterSprites();
-
-        // 초기 대화 시작
-        StartDialogue("1-2_1");
+        if (GameSettings.CurrentDialogueType == GameSettings.DialogueType.Intro)
+        {
+            mainUIManager.StartDialogue("Intro");
+        }
+        else if (GameSettings.CurrentDialogueType == GameSettings.DialogueType.Outro)
+        {
+            mainUIManager.StartDialogue("Outro");
+        }
     }
 
     void LoadDialogueData(string jsonFileName)
@@ -47,16 +64,12 @@ public class DialogueManager : MonoBehaviour
         dialogueDictionary = container.dialogues.ToDictionary(d => d.id, d => d);
     }
 
-    // 캐릭터 스프라이트를 Resources 폴더에서 동적으로 로드하는 함수
     void LoadCharacterSprites()
     {
-        // JSON에 정의된 모든 캐릭터 이름을 추출 (중복 제거)
         var speakers = dialogueDictionary.Values.Select(d => d.speaker).Distinct();
 
         foreach (var speakerName in speakers)
         {
-            // Resources.Load<Sprite>를 사용하여 'speakerName'과 이름이 같은 이미지를 로드
-            // 예: Resources/Player.png -> Sprite
             Sprite characterSprite = Resources.Load<Sprite>(speakerName);
 
             if (characterSprite != null)
@@ -71,33 +84,56 @@ public class DialogueManager : MonoBehaviour
     }
 
     // 대화 시작
-    public void StartDialogue(string startDialogueId)
+    public void StartDialogue(string startDialogueId, int requiredStage)
     {
         dialoguePanel.SetActive(true);
+        activeStage = requiredStage;
+
         if (dialogueDictionary.ContainsKey(startDialogueId))
         {
-            SetDialogue(dialogueDictionary[startDialogueId]);
+            Dialogue startDialogue = dialogueDictionary[startDialogueId];
+            if (startDialogue.stage == activeStage)
+            {
+                SetDialogue(startDialogue);
+            }
+            else
+            {
+                //해당 스테이지의 대화가 아님: 바로 게임 시작
+                Debug.LogWarning($"Intro dialogue for stage {activeStage} not found. Starting game directly.");
+                EndDialogue(true);
+            }
         }
         else
         {
             Debug.LogError("Dialogue ID not found: " + startDialogueId);
-            EndDialogue();
+            EndDialogue(true); // 대사 ID가 없으면 바로 종료하고 게임 시작
         }
     }
 
-    // 다음 버튼 클릭 시 호출될 함수 (혹은 화면 터치)
     public void OnNextButtonClick()
     {
         if (currentDialogue != null)
         {
             string nextId = currentDialogue.nextDialogueId;
+
             if (nextId == "End")
             {
                 EndDialogue();
             }
             else if (dialogueDictionary.ContainsKey(nextId))
             {
-                SetDialogue(dialogueDictionary[nextId]);
+                Dialogue nextDialogue = dialogueDictionary[nextId];
+
+                // 다음 대사가 현재 스테이지와 일치할 때만 진행
+                if (nextDialogue.stage == activeStage)
+                {
+                    SetDialogue(nextDialogue);
+                }
+                else
+                {
+                    // 대화 흐름이 끝남 (다음 스테이지로 넘어가야 함)
+                    EndDialogue();
+                }
             }
             else
             {
@@ -152,7 +188,7 @@ public class DialogueManager : MonoBehaviour
             }
             // ------------------
 
-            // 반대편 캐릭터는 어둡게
+            // 반대편 캐릭터는 어둡게 -> 안나옴
             if (inactiveImage != null)
             {
                 if (inactiveImage.gameObject.activeSelf)
@@ -164,11 +200,23 @@ public class DialogueManager : MonoBehaviour
     }
 
     // 대화 종료
-    private void EndDialogue()
+    private void EndDialogue(bool skipAction = false)
     {
         dialoguePanel.SetActive(false);
         leftCharacterPanel.SetActive(false);
         rightCharacterPanel.SetActive(false);
-        Debug.Log("대화가 종료되었습니다.");
+
+        if (!skipAction && currentDialogue != null && mainUIManager != null)
+        {
+            // 대화 종료 후 행동을 MainUIManager에 전달
+            mainUIManager.HandleDialogueAction(currentDialogue.actionAfterDialogue);
+        }
+        else if (mainUIManager != null)
+        {
+            // skipAction일 경우 (대화가 바로 없을 때) 기본적으로 게임 플레이 시작
+            mainUIManager.HandleDialogueAction("START_GAME");
+        }
+
+        Debug.Log("대화가 종료되었습니다. Action: " + (currentDialogue != null ? currentDialogue.actionAfterDialogue : "START_GAME"));
     }
 }

@@ -78,8 +78,15 @@ public class StageManager : MonoBehaviour
 
     public void OnPlayButtonClicked()
     {
-        // 현재는 MainScene만 로드
-        SceneManager.LoadScene("MainScene"); 
+        // 1. 선택된 스테이지 번호를 GameSettings에 저장
+        GameSettings.SetSelectedStage(selectedStage);
+
+        // 2. 씬 로드 후 '인트로 대화'부터 시작하도록 플래그 설정
+        GameSettings.SetDialogueType(GameSettings.DialogueType.Intro);
+
+        // 3. MainScene으로 이동
+        SceneManager.LoadScene("MainScene");
+
         // SceneManager.LoadScene($"Stage_{selectedStage}"); 
     }
 
