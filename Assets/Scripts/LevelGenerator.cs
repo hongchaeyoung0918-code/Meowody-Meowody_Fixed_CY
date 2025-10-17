@@ -30,6 +30,9 @@ public class LevelGenerator : MonoBehaviour
     private List<Node> mapNodes = new List<Node>();
     private float lastSpawnBeat = 0;
 
+    private const float TILE_HEIGHT = 1.0f;
+
+
     void Start()
     {
         if (playerTransform == null) playerTransform = FindObjectOfType<PlayerController>()?.transform;
@@ -64,17 +67,37 @@ public class LevelGenerator : MonoBehaviour
                 switch (type)
                 {
                     case NodeType.SLIDE_OBSTACLE:
-                        relativeY = 0.7f; // 플레이어가 서 있을 때 충돌, 슬라이딩 시 통과 높이
+                        // 땅 높이(0.0)에서 생성. (슬라이딩 오브젝트는 땅 위를 지나가야 함)
+                        // relativeY = 0.0f;로 설정하면 플레이어 발에 맞춰 생성될 수 있으므로, 
+                        // 플레이어의 서있는 높이를 기준으로 장애물의 중심을 잡는 것이 좋습니다.
+                        relativeY = 0.5f;
                         break;
+
                     case NodeType.CITIZEN:
-                        relativeY = 0.0f; // 땅에 서 있는 높이
+                        // 땅 높이(0.0f)에 생성. (시민은 땅 위에 서 있어야 함)
+                        relativeY = 0.0f;
                         break;
-                    case NodeType.JUMP_PLATFORM:
+
+                    // 새로운 플랫폼 높이 설정:
+                    case NodeType.JUMP_PLATFORM_1:
+                        // 땅보다 TILE_HEIGHT * 1 만큼 아래에 생성하여 밟을 수 있는 공간 확보
+                        relativeY = -TILE_HEIGHT * 1;
+                        break;
+                    case NodeType.JUMP_PLATFORM_2:
+                        relativeY = -TILE_HEIGHT * 2;
+                        break;
+                    case NodeType.JUMP_PLATFORM_3:
+                        relativeY = -TILE_HEIGHT * 3;
+                        break;
+
                     case NodeType.TRAMPOLINE:
-                        relativeY = -0.5f; // 땅보다 살짝 낮게 배치하여 점프를 유도
+                        // 트램폴린도 땅 높이에 생성
+                        relativeY = 0.0f;
                         break;
+
                     case NodeType.JUMP_ORB:
-                        relativeY = 2.0f; // 점프로만 도달 가능한 높이
+                        // 조정: 점프 오브를 2칸 정도 높은 위치에 생성
+                        relativeY = 2.0f;
                         break;
                 }
 
@@ -118,8 +141,10 @@ public class LevelGenerator : MonoBehaviour
         // Y축 위치 계산: 맵 기준 높이 + 노드의 상대적 Y
         float spawnY = playerBaseY + node.relativeY;
 
-        // JUMP_PLATFORM (타일) 처리
-        if (node.type == NodeType.JUMP_PLATFORM)
+        // 수정된 JUMP_PLATFORM (타일) 처리: 1칸, 2칸, 3칸 높이 모두 포함
+        if (node.type == NodeType.JUMP_PLATFORM_1 ||
+            node.type == NodeType.JUMP_PLATFORM_2 ||
+            node.type == NodeType.JUMP_PLATFORM_3)
         {
             if (groundTilemap != null && platformTile != null)
             {
@@ -136,12 +161,12 @@ public class LevelGenerator : MonoBehaviour
             }
             else
             {
-                Debug.LogError("JUMP_PLATFORM 생성을 위해 groundTilemap 또는 platformTile이 설정되지 않았습니다.");
+                Debug.LogError("점프 플랫폼 생성을 위해 groundTilemap 또는 platformTile이 설정되지 않았습니다.");
             }
             return; // 타일은 프리팹 인스턴스화가 필요 없으므로 함수 종료
         }
 
-        // 나머지 상호작용 오브젝트 (프리팹) 처리
+        // 나머지 상호작용 오브젝트 (프리팹) 처리 (CITIZEN, SLIDE_OBSTACLE, TRAMPOLINE, JUMP_ORB)
 
         GameObject prefab = GetPrefabByType(node.type);
 
@@ -167,14 +192,30 @@ public class LevelGenerator : MonoBehaviour
             case NodeType.TRAMPOLINE: return trampoPrefab;
             case NodeType.JUMP_ORB: return jumpOrbPrefab;
             case NodeType.CITIZEN: return citizenPrefab;
+
+            // 모든 플랫폼 타입은 타일맵을 사용하므로 null 반환 (SpawnNode에서 처리)
+            case NodeType.JUMP_PLATFORM_1:
+            case NodeType.JUMP_PLATFORM_2:
+            case NodeType.JUMP_PLATFORM_3:
+                return null;
             default: return null;
         }
     }
 
-    // 임시 랜덤 타입 선택 함수 (실제 게임에서는 난이도 규칙 기반)
     private NodeType GetRandomNodeType(System.Random rand)
     {
-        Array values = Enum.GetValues(typeof(NodeType));
-        return (NodeType)values.GetValue(rand.Next(values.Length));
+        // 기존의 JUMP_PLATFORM 대신 새로운 3가지 타입을 포함한 배열을 만듭니다.
+        NodeType[] availableTypes = new NodeType[]
+        {
+        NodeType.SLIDE_OBSTACLE,
+        NodeType.CITIZEN,
+        NodeType.JUMP_PLATFORM_1,
+        NodeType.JUMP_PLATFORM_2,
+        NodeType.JUMP_PLATFORM_3,
+        NodeType.TRAMPOLINE,
+        NodeType.JUMP_ORB
+        };
+
+        return availableTypes[rand.Next(availableTypes.Length)];
     }
 }

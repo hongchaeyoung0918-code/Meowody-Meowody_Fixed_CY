@@ -4,7 +4,10 @@ public enum NodeType
 {
     // 이동/방어 관련
     SLIDE_OBSTACLE, // 슬라이딩으로 피해야 하는 장애물
-    JUMP_PLATFORM,  // 일반 점프를 유도하는 플랫폼
+    JUMP_PLATFORM_1,  // 1칸
+    JUMP_PLATFORM_2,  // 2칸
+    JUMP_PLATFORM_3,  // 3칸
+    
     TRAMPOLINE,     // 트램폴린 (추가 점프력)
     JUMP_ORB,       // 공중 점프 오브젝트
 
