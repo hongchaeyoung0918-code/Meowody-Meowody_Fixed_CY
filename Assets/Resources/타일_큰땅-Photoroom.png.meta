@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 5e153457cedb486498fd071bc66088db
+guid: 4da93d6128a8c314293bcb9e22d62ca8
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -1398156180646540075
-    second: airplan_0
+      213: 1356973105479194587
+    second: "\uD0C0\uC77C_\uD070\uB545-Photoroom_0"
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -46,7 +46,7 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 1
+  spriteMode: 2
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
@@ -113,13 +113,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: airplan_0
+      name: "\uD0C0\uC77C_\uD070\uB545-Photoroom_0"
       rect:
         serializedVersion: 2
         x: 0
         y: 0
         width: 154
-        height: 160
+        height: 146
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -128,8 +128,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 5dccb088c50c89ce0800000000000000
-      internalID: -1398156180646540075
+      spriteID: bd798d199dfe4d210800000000000000
+      internalID: 1356973105479194587
       vertices: []
       indices: 
       edges: []
@@ -138,7 +138,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 5e97eb03825dee720800000000000000
+    spriteID: 
     internalID: 0
     vertices: []
     indices: 
@@ -147,8 +147,7 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable:
-      airplan_0: -1398156180646540075
+    nameFileIdTable: {}
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -14,11 +14,13 @@ public class CitizenController : MonoBehaviour
         sr = GetComponent<SpriteRenderer>();
         citizenCollider = GetComponent<Collider2D>();
 
+        if (citizenCollider != null)
+        {
+            citizenCollider.isTrigger = true; // 항상 트리거로 설정
+        }
+
         // 초기 상태 설정
         UpdateCitizenState(isHappy);
-
-        // 플레이어와의 충돌 판정은 OnCollisionEnter2D에서 처리되므로, 
-        // 콜라이더는 Is Trigger를 체크하지 않습니다.
     }
 
     // 음표에 맞았을 때 호출되는 함수
@@ -46,22 +48,29 @@ public class CitizenController : MonoBehaviour
         {
             // 회색(슬플 때): 플레이어에게 벽 판정 (Is Trigger = false, 일반 충돌)
             // 행복할 때: 플레이어가 통과 (Is Trigger = true)
-            citizenCollider.isTrigger = happy;
+            citizenCollider.enabled = !happy;
         }
     }
 
-    // 플레이어가 회색 시민에 닿았을 때 HP를 깎는 로직
-    void OnCollisionEnter2D(Collision2D collision)
+    void OnTriggerEnter2D(Collider2D other)
     {
-        // 플레이어와 충돌했는지 확인하고, 시민이 슬픈 상태(벽 판정)인지 확인
-        if (collision.gameObject.CompareTag("Player") && !isHappy)
+        // 플레이어와 충돌했는지 확인하고, 시민이 슬픈 상태(콜라이더가 켜진 상태)인지 확인
+        if (other.CompareTag("Player") && !isHappy)
         {
-            // 플레이어 컨트롤러를 가져와서 ProcessFailure() 호출 (HP 감소 및 리스폰)
-            PlayerController player = collision.gameObject.GetComponent<PlayerController>();
+            // 플레이어 컨트롤러를 가져와서 ProcessFailure() 호출 (HP 감소 및 무적)
+            PlayerController player = other.GetComponent<PlayerController>();
+
             if (player != null)
             {
-                // ProcessFailure()를 직접 호출하여 벽에 막힌 것과 동일하게 처리
+                // ProcessFailure()를 호출하여 HP를 깎고 무적 상태로 전환
                 player.ProcessFailureFromCitizenCollision();
+
+                // 충돌 후 시민 오브젝트를 제거 (선택 사항)
+                // HP를 깎은 후 시민을 남겨둘지, 다른 노드처럼 없앨지는 기획에 따라 결정합니다.
+                // 여기서는 피격 후 시민이 바로 사라지도록 처리하겠습니다.
+                citizenCollider.enabled = false;
+                gameObject.SetActive(false);
+                Destroy(gameObject); // (오브젝트 풀링 사용 시 pool.Return(gameObject)으로 대체)
             }
         }
     }

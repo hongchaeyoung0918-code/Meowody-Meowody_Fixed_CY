@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Ground
   - EndFlag
+  - Note_Obstacle
   layers:
   - Default
   - TransparentFX
@@ -15,7 +16,7 @@ TagManager:
   - UI
   - Ground
   - Player
-  - 
+  - Obstacle
   - 
   - 
   - 

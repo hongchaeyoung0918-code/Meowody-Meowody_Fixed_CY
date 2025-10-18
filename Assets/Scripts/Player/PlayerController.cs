@@ -1,13 +1,21 @@
 using UnityEngine;
+using System.Collections;
+using TMPro.Examples;
 
 public class PlayerController : MonoBehaviour
 {
     public float moveSpeed = 5f;
-    public float jumpForce = 10f;
 
     [Header("Jump Settings")]
+    public float jumpForce = 10f;
     public int maxJumpCount = 1; //더블 점프 비활성화
     private int currentJumpCount = 0;
+
+    public float trampolineJumpForce = 15f;
+
+    [Header("Invincibility Settings")]
+    public float invincibilityDuration = 2.0f; //피격 후 무적
+    private bool isInvincible = false;
 
     [Header("Slide Settings")]
     public float slideSpeedMultiplier = 1.5f;
@@ -55,12 +63,14 @@ public class PlayerController : MonoBehaviour
     private Vector3 originalScale;
 
     private bool isFailing = false;
+
+    private float initialXPosition;
+
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         capsuleCollider = GetComponent<CapsuleCollider2D>();
 
-        currentMoveSpeed = moveSpeed;
         originalScale = transform.localScale;
 
         if(capsuleCollider != null)
@@ -97,17 +107,14 @@ public class PlayerController : MonoBehaviour
         Vector3 startPosition = transform.position;
         transform.position = new Vector3(startPosition.x, 0f, startPosition.z);
 
+        initialXPosition = transform.position.x;
     }
 
     void Update()
     {
-        if (respawnTimer > 0f)
+        if (!isInvincible)
         {
-            respawnTimer -= Time.deltaTime;
-        }
-        else
-        {
-            CheckForFailure(); // 타이머가 0 이하일 때만 실패 감지
+            CheckForFailure();
         }
 
         CheckIfGrounded();
@@ -116,14 +123,19 @@ public class PlayerController : MonoBehaviour
         HandleJump();
         HandleNoteShoot();
 
-
-        if (currentMoveSpeed > 0)
+        if (!isGameOver)
         {
-            rb.linearVelocity = new Vector2(currentMoveSpeed, rb.linearVelocity.y);
+            transform.position = new Vector3(
+            initialXPosition,
+            transform.position.y,
+            transform.position.z
+            );
 
+            rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
         }
         else
         {
+            // 게임 오버 시 완전히 멈춤
             rb.linearVelocity = Vector2.zero;
         }
     }
@@ -184,81 +196,74 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    // ProcessFailure() 함수를 무적 로직에 맞춰 수정
     void ProcessFailure()
     {
-        rb.linearVelocity = Vector2.zero;
-        currentMoveSpeed = 0f;
+        // 이미 무적 상태이면 피격 무시
+        if (isInvincible) return;
 
         playerStats.HP--;
-
-        Debug.Log($"플레이어 실패! 남은 HP: {playerStats.HP}");
+        Debug.Log($"플레이어 피격! 남은 HP: {playerStats.HP}");
 
         if (playerStats.HP <= 0)
         {
             isGameOver = true;
             currentMoveSpeed = 0f;
             enabled = false;
-
-            if (uiManager != null)
-            {
-                uiManager.ShowGameOver();
-            }
+            // UI Manager Game Over 호출
+            if (uiManager != null) uiManager.ShowGameOver();
         }
         else
         {
-            Respawn();
+            // HP가 남았다면 무적 상태로 전환
+            StartCoroutine(InvincibilityCoroutine());
         }
     }
 
+    // ProcessFailureFromCitizenCollision() 함수를 ProcessFailure()로 연결
     public void ProcessFailureFromCitizenCollision()
     {
-        // 이미 실패 처리 중이거나 게임 오버 상태가 아니며, respawnTimer가 0일 때만 처리
-        if (playerStats == null || isGameOver || isFailing || respawnTimer > 0f) return;
+        // 시민 충돌은 벽에 박는 것과 동일하게 처리하되, isInvincible을 확인해야 합니다.
+        if (isInvincible || isGameOver) return;
 
-        // isFailing 플래그를 바로 설정하여 중복 호출 방지
-        isFailing = true;
-
-        // ProcessFailure() 로직을 직접 실행
         ProcessFailure();
 
-        // 참고: ProcessFailure()가 Respawn()을 호출하면 isFailing은 다시 false가 됩니다.
+        Debug.Log("시민과 충돌로 인한 피격 처리 완료.");
     }
 
+    // ProcessFailureFromObstacle() 함수 (일반 장애물)를 ProcessFailure()로 연결
     public void ProcessFailureFromObstacle()
     {
-        // 이미 실패 처리 중이거나 게임 오버 상태가 아니며, respawnTimer가 0일 때만 처리
-        if (playerStats == null || isGameOver || isFailing || respawnTimer > 0f) return;
+        // 일반 장애물 충돌 처리
+        if (isInvincible || isGameOver) return;
 
-        // 실패 처리 로직 실행 (벽 충돌, 시민 충돌과 동일하게 HP 감소 및 리스폰)
-        isFailing = true;
         ProcessFailure();
 
-        Debug.Log("플레이어가 장애물에 부딪혀 실패했습니다.");
+        Debug.Log("장애물과 충돌로 인한 피격 처리 완료.");
     }
 
-    void Respawn()
+    // 무적 상태 코루틴
+    IEnumerator InvincibilityCoroutine()
     {
+        isInvincible = true;
+        Debug.Log("무적 상태 시작!");
 
-        rb.linearVelocity = Vector2.zero;
-        currentMoveSpeed = moveSpeed;
+        SpriteRenderer sr = GetComponent<SpriteRenderer>();
+        //Collider2D col = GetComponent<Collider2D>(); // 일반 콜라이더 (벽 충돌용)
 
-        if (respawnPoint != null)
+        // 깜빡임 효과 (선택 사항)
+        if (sr != null)
         {
-            Vector3 spawnPosition = respawnPoint.position;
-            transform.position = new Vector3(spawnPosition.x - 1.0f, spawnPosition.y, spawnPosition.z);
-
-            if (isSliding)
+            for (float t = 0; t < invincibilityDuration; t += 0.15f) // 0.15초 간격으로 깜빡임
             {
-                EndSlide();
+                sr.enabled = !sr.enabled;
+                yield return new WaitForSeconds(0.075f);
             }
+            sr.enabled = true; // 무적 종료 후 다시 보이게 설정
         }
-        else
-        {
-            Debug.LogError("리스폰 지점이 설정되지 않았습니다! 리스폰 불가.");
-        }
-        
-        isFailing = false;
-        respawnTimer = respawnGraceTime; // 리스폰 무적 시간 설정
+
+        isInvincible = false;
+        Debug.Log("무적 상태 종료");
 
         currentJumpCount = 0;
     }
@@ -270,33 +275,32 @@ public class PlayerController : MonoBehaviour
 
         if (!isSliding && jumpInput)
         {
-            if (isGrounded) // 1. 땅에서 점프 (currentJumpCount 대신 isGrounded만 사용)
+            // 수정: isGrounded 일 때만 점프를 허용
+            if (isGrounded && currentJumpCount == 0)
             {
-                // 점프 직후 isGrounded = false가 되므로, 연속 점프를 막습니다.
+                // 수직 속도 리셋 후 점프
                 rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
                 rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
 
+                currentJumpCount = 1; // 점프 횟수 1로 설정 (공중에 있음을 표시)
                 isGrounded = false;
-                currentJumpCount = 1; // 점프 사용 플래그로 활용 (1: 사용함, 0: 땅에 닿아 리셋됨)
+
+                Debug.Log("일반 점프 실행.");
             }
         }
     }
 
     public void PerformAirJumpOnContact()
     {
-        // 땅에 닿아있지 않을 때만 점프 (공중에 있을 때만 Orb Jump)
         if (!isGrounded)
         {
             // 1. 수직 속도 리셋
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
 
-            // 2. 점프 실행 (점프 높이는 jumpForce 변수와 동일)
+            // 2. 점프 실행 (점프 궤적을 갱신)
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
 
-            // 3. 디버그 로그
-            Debug.Log("Orb Jump 실행!");
-
-            // currentJumpCount는 건드리지 않습니다. (땅에 닿아야 리셋됨)
+            Debug.Log("Jump Orb Jump 실행!");
         }
     }
 
@@ -323,7 +327,7 @@ public class PlayerController : MonoBehaviour
         isSliding = true;
         slideTimer = slideDuration;
 
-        currentMoveSpeed = moveSpeed * slideSpeedMultiplier;
+        //currentMoveSpeed = moveSpeed * slideSpeedMultiplier;
 
         transform.localScale = originalScale * slideHeightScale;
 
@@ -351,7 +355,7 @@ public class PlayerController : MonoBehaviour
     {
         isSliding = false;
 
-        currentMoveSpeed = moveSpeed;
+        //currentMoveSpeed = moveSpeed;
 
         transform.localScale = originalScale;
 
@@ -389,9 +393,8 @@ public class PlayerController : MonoBehaviour
             NoteProjectile noteProjectile = note.GetComponent<NoteProjectile>();
             if (noteProjectile != null)
             {
-                // NoteProjectile에 플레이어의 Rigidbody를 전달하여 현재 속도를 참고할 수 있게 할 수도 있습니다.
-                // 여기서는 단순하게 일정한 속도로 발사하도록 구현합니다.
-                noteProjectile.Launch(moveSpeed * 2.0f); // 이동 속도의 2배로 발사 (예시)
+                const float attackProjectileSpeed = 10.0f;
+                noteProjectile.Launch(attackProjectileSpeed);
             }
 
             Debug.Log("음표 발사!");
@@ -399,15 +402,34 @@ public class PlayerController : MonoBehaviour
     }
     void OnCollisionEnter2D(Collision2D collision)
     {
+/*        if (collision.gameObject.CompareTag("Note_Obstacle"))
+        {
+            ProcessFailureFromObstacle();
+            // 충돌한 장애물 제거 (옵션)
+            Destroy(collision.gameObject);
+        }*/
+
         if (collision.gameObject.CompareTag("Ground"))
         {
-            //isGrounded = true;
-            //currentJumpCount = 0;
+            if (!isGameOver)
+            {
+                rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+            }
         }
     }
 
     void OnTriggerEnter2D(Collider2D other)
     {
+        if (other.gameObject.CompareTag("Note_Obstacle"))
+        {
+            ProcessFailureFromObstacle();
+
+            // 피격 후 노드 제거 (풀링에 반환)
+            other.gameObject.SetActive(false);
+            Destroy(other.gameObject);
+            return;
+        }
+
         if (other.gameObject.CompareTag("EndFlag"))
         {
             Debug.Log("Trigger with EndFlag");
