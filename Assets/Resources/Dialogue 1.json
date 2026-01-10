@@ -1,0 +1,185 @@
+﻿{
+  "dialogues": [
+    {
+      "id": "3-1_1",
+      "stage": 3,
+      "speaker": "Player",
+      "name": "루",
+      "text": "여긴 네온시티. 화려한 불빛인데, 이상하게 차가워.",
+      "position": "Left",
+      "hideCharacterPosition": "Right",
+      "nextDialogueId": "3-1_2"
+    },
+    {
+      "id": "3-1_2",
+      "stage": 3,
+      "speaker": "Citizen",
+      "name": "회색 시민들",
+      "text": "...",
+      "position": "Right",
+      "nextDialogueId": "3-1_3"
+    },
+    {
+      "id": "3-1_3",
+      "stage": 3,
+      "speaker": "Player",
+      "name": "루",
+      "text": "도시 사람들... 아직도 표정이 없네.",
+      "position": "Left",
+      "hideCharacterPosition": "Right",
+      "nextDialogueId": "3-1_4"
+    },
+    {
+      "id": "3-1_4",
+      "stage": 3,
+      "speaker": "Player",
+      "name": "루",
+      "text": "아까 내 노래가 누군가에게 닿을 수 있다고 그랬지.",
+      "position": "Left",
+      "nextDialogueId": "3-1_5"
+    },
+    {
+      "id": "3-1_5",
+      "stage": 3,
+      "speaker": "Player",
+      "name": "루",
+      "text": "들려줄게, 나의 노래를.",
+      "position": "Left",
+      "nextDialogueId": "End",
+      "actionAfterDialogue": "START_GAME"
+    },
+    {
+      "id": "3-2_1",
+      "stage": 3,
+      "speaker": "Player",
+      "name": "루",
+      "text": "…끝났어.",
+      "position": "Left",
+      "nextDialogueId": "3-2_2"
+    },
+    {
+      "id": "3-2_2",
+      "stage": 3,
+      "speaker": "Citizen",
+      "name": "회색 시민들",
+      "text": "...이 노래, 따뜻하다...",
+      "position": "Right",
+      "nextDialogueId": "3-2_3"
+    },
+    {
+      "id": "3-2_3",
+      "stage": 3,
+      "speaker": "Citizen",
+      "name": "회색 시민들",
+      "text": "뭔가... 마음이 편해져...",
+      "position": "Right",
+      "nextDialogueId": "3-2_Cut_1"
+    },
+    {
+      "id": "3-2_Cut_1",
+      "stage": 3,
+      "speaker": "",
+      "name": "",
+      "text": "",
+      "isCutscene": true,
+      "cutsceneImage": "Cutscene_overcome",
+      "cutsceneEffect": "FADE_IN",
+      "nextDialogueId": "3-2_5"
+    },
+    {
+      "id": "3-2_4",
+      "stage": 3,
+      "speaker": "Player",
+      "name": "루",
+      "text": "이 도시가… 이제 색을 되찾았어.",
+      "position": "Left",
+      "nextDialogueId": "3-2_5"
+    },
+    {
+      "id": "3-2_5",
+      "stage": 3,
+      "speaker": "Player",
+      "name": "루",
+      "text": "그래, 이게 내가 하고 싶었던 일이야.",
+      "position": "Left",
+      "nextDialogueId": "3-2_6"
+    },
+    {
+      "id": "3-2_6",
+      "stage": 3,
+      "speaker": "GirlFan",
+      "name": "아리",
+      "text": "우와, 대단해요! 도시가 완전히 달라졌어요!",
+      "position": "Right",
+      "nextDialogueId": "3-2_7"
+    },
+    {
+      "id": "3-2_7",
+      "stage": 3,
+      "speaker": "Player",
+      "name": "루",
+      "text": "...나 혼자선 못했을 거야. 네가 내게 다시 노래하게 해줬으니까.",
+      "position": "Left",
+      "nextDialogueId": "3-2_8"
+    },
+    {
+      "id": "3-2_8",
+      "stage": 3,
+      "speaker": "Citizen",
+      "name": "회색 시민들",
+      "text": "루! 더 들려줘! 네 노래를!",
+      "position": "Right",
+      "nextDialogueId": "3-2_9"
+    },
+    {
+      "id": "3-2_9",
+      "stage": 3,
+      "speaker": "Player",
+      "name": "루",
+      "text": "좋아. 다음은 더 밝은 곡이야.",
+      "position": "Left",
+      "nextDialogueId": "3-2_Cut_3"
+    },
+    {
+      "id": "3-2_Cut_3",
+      "stage": 3,
+      "speaker": "",
+      "name": "",
+      "text": "",
+      "isCutscene": true,
+      "cutsceneImage": "CutScene_Third_FadeOut",
+      "cutsceneEffect": "FADE_OUT",
+      "nextDialogueId": "3-2_Cut_4"
+    },
+    {
+      "id": "3-2_Cut_4",
+      "stage": 3,
+      "speaker": "",
+      "name": "",
+      "text": "",
+      "isCutscene": true,
+      "cutsceneImage": "CutScene_Black_Screen",
+      "cutsceneEffect": "HOLD",
+      "nextDialogueId": "3-2_10"
+    },
+    {
+      "id": "3-2_10",
+      "stage": 3,
+      "speaker": "Player",
+      "name": "루",
+      "text": "...MS엔터가 보인다.",
+      "position": "Left",
+      "nextDialogueId": "3-2_11"
+    },
+    {
+      "id": "3-2_11",
+      "stage": 3,
+      "speaker": "Player",
+      "name": "루",
+      "text": "기다려, 미스터. 이제 준비됐어.",
+      "position": "Left",
+      "nextDialogueId": "End",
+      "actionAfterDialogue": "SHOW_CLEAR_UI"
+    }
+  ]
+}

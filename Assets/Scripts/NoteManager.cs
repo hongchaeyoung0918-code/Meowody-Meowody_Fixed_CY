@@ -1,19 +1,18 @@
 using UnityEngine;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 
 public class NoteManager : MonoBehaviour
 {
-    [Header("Chart Loading")]
-    public string chartFilePath = "Assets/Charts/chart.json";
+    private string chartFilePath = "Charts/chart1-1";
     private ChartData currentChart;
 
     [Header("Game Setup")]
     public AudioSource audioSource;
     public Transform spawnPoint;
-    public float noteSpeed = 5f;
-    public float preSpawnTime = 2f; //노드 스폰 시간
+    public float noteSpeed = 7f;
+    public float preSpawnTime = 2f;
+    private bool isGameActive = false;
 
     [Header("Object Pooling/Prefabs")]
     public GameObject[] notePrefabs;
@@ -21,71 +20,87 @@ public class NoteManager : MonoBehaviour
 
     [Header("Note Offsets")]
     public float gimmickYOffset = 1.3f;
-    public float slideYOffset = 2.0f;
+    public float slideYOffset = 2.5f;
 
     [Header("Lane Setup")]
-    public float[] laneYPositions = new float[]
-    {
-        -5f,
-        -2.5f,
-        0f,
-        2.5f
-    };
+    public float[] laneYPositions = new float[] { -5f, -2.5f, 0f, 2.5f };
 
+    [Header("Tutorial Status (Stage 1 Only)")]
+    private bool hasShownJump = false;
+    private bool hasShownSlide = false;
+    private bool hasShownJump2 = false;
 
     private int nextNoteIndex = 0;
+    private bool isSongFinished = false;
+    private float sideNoteXOffset = 1.5f;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         InitializeGimmickMap();
+        int currentStage = GameSettings.SelectedStage;
+        string dynamicChartPath = $"Charts/chart{currentStage}";
+        TextAsset jsonText = Resources.Load<TextAsset>(dynamicChartPath);
 
-        string fullPath = Path.Combine(Application.dataPath, chartFilePath.Replace("Assets/", ""));
-        currentChart = ChartLoader.LoadChart(fullPath);
+        if (jsonText == null) { enabled = false; return; }
+        currentChart = ChartLoader.LoadChart(jsonText.text);
+        if (currentChart == null) { enabled = false; return; }
+    }
 
-        if (currentChart == null)
+    void Update()
+    {
+        // 튜토리얼 일시정지 중이면 노트 생성 로직 중단
+        if (TutorialManager.Instance != null && TutorialManager.Instance.IsPaused()) return;
+
+        if (!isGameActive || currentChart == null || isSongFinished) return;
+
+        float currentTime = audioSource.time;
+
+        if (audioSource.clip != null && !audioSource.isPlaying && currentTime > 0)
         {
-            enabled = false;
+            isSongFinished = true;
+            MainUIManager mainUIManager = FindFirstObjectByType<MainUIManager>();
+            if (mainUIManager != null) mainUIManager.ShowGameClear();
             return;
         }
 
-        // 3. 게임 시작 (음악 재생)
-        audioSource.Play();
-        Debug.Log("Music started and Note Spawner active.");
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        if (currentChart == null || !audioSource.isPlaying) return;
-
-        // 현재 음악 시간
-        float currentTime = audioSource.time;
-
-        // 노드 스폰 로직
         while (nextNoteIndex < currentChart.notes.Count)
         {
             NoteInfo nextNote = currentChart.notes[nextNoteIndex];
-
             if (nextNote.time <= currentTime + preSpawnTime)
             {
-                // 노드 생성 및 초기 설정
-                //SpawnNote(nextNote);
                 SpawnNoteWithSupport(nextNote);
                 nextNoteIndex++;
             }
-            else
-            {
-                // 아직 스폰할 시간이 아님. 다음 프레임 대기
-                break;
-            }
+            else break;
+        }
+    }
+
+    // [중요] 노트가 일정 거리에 도달했을 때 NoteMovement에서 이 함수를 호출합니다.
+    public void TriggerTutorialIfFirstTime(string type)
+    {
+        if (GameSettings.SelectedStage != 1) return;
+
+        if ((type == "SmallThorn" || type == "BigThorn") && !hasShownJump)
+        {
+            hasShownJump = true;
+            TutorialManager.Instance.ShowTutorial(type, audioSource);
+        }
+        else if (type == "Slide" && !hasShownSlide)
+        {
+            hasShownSlide = true;
+            TutorialManager.Instance.ShowTutorial(type, audioSource);
+        }
+        else if (type == "Jump2" && !hasShownJump2)
+        {
+            hasShownJump2 = true;
+            TutorialManager.Instance.ShowTutorial(type, audioSource);
         }
     }
 
     private void InitializeGimmickMap()
     {
         gimmickToPrefabMap = notePrefabs.ToDictionary(
-            prefab => prefab.name.Replace("(Clone)", "").Trim(), // 프리팹 이름이 기믹 타입이 되도록 가정
+            prefab => prefab.name.Replace("(Clone)", "").Trim(),
             prefab => prefab
         );
     }
@@ -93,116 +108,58 @@ public class NoteManager : MonoBehaviour
     private void SpawnNoteWithSupport(NoteInfo noteData)
     {
         string type = noteData.type;
-        bool needsSupport = (type == "Slide" || type == "Attack" || type == "Trampoline" || type == "Citizen");
+        bool needsSupport = (type == "Slide" || type == "Attack" || type == "Trampoline" || type == "Citizen"
+            || type == "WideThorn" || type == "SmallThorn" || type == "BigThorn" || type == "Jump2");
 
-        // 지원 노드(NormalJump2)가 필요한 기믹 목록
         if (needsSupport)
         {
-            NoteInfo supportNote = new NoteInfo
-            {
-                time = noteData.time,
-                type = "NormalJump2",
-                laneIndex = noteData.laneIndex
-            };
-            PerformSpawn(supportNote, 0f); // 0f: 오프셋 없음
+            NoteInfo supportNote = new NoteInfo { time = noteData.time, type = "NormalJump2", laneIndex = noteData.laneIndex };
+            PerformSpawn(supportNote, 0f);
 
-            // 2. 원래의 기믹 노드를 생성하기 위한 오프셋 값 결정
-            float finalOffset;
-            if (type == "Slide")
+            if (type == "Slide" || type == "SmallThorn" || type == "BigThorn")
             {
-                // 슬라이드만 전용 오프셋 적용
-                finalOffset = slideYOffset;
-            }
-            else
-            {
-                // 그 외 지원 필요한 기믹은 일반 오프셋 적용
-                finalOffset = gimmickYOffset;
+                PerformSpawn(supportNote, 0f, -sideNoteXOffset);
+                PerformSpawn(supportNote, 0f, sideNoteXOffset);
             }
 
-            // 3. 원래의 기믹 노드를 생성 (결정된 오프셋 적용)
+            float finalOffset = (type == "Slide") ? slideYOffset : (type == "Attack" ? gimmickYOffset + 0.4f : gimmickYOffset);
             PerformSpawn(noteData, finalOffset);
         }
         else
         {
-            // 지원 노드가 필요 없는 순수 노드는 오프셋 미적용 (라인 위치에 생성)
             PerformSpawn(noteData, 0f);
         }
     }
 
-    private void PerformSpawn(NoteInfo noteData, float offsetValue)
+    private void PerformSpawn(NoteInfo noteData, float offsetValue, float xOffset = 0f)
     {
-        // 1. 기믹 타입에 해당하는 프리팹 가져오기
-        if (!gimmickToPrefabMap.TryGetValue(noteData.type, out GameObject prefab))
-        {
-            Debug.LogWarning($"Prefab not found for gimmick type: {noteData.type}. Check assignments and naming.");
-            return;
-        }
+        if (!gimmickToPrefabMap.TryGetValue(noteData.type, out GameObject prefab)) return;
 
-        float spawnY = 0f;
-        if (noteData.laneIndex >= 0 && noteData.laneIndex < laneYPositions.Length)
-        {
-            spawnY = laneYPositions[noteData.laneIndex];
-        }
-        else
-        {
-            Debug.LogError($"Invalid laneIndex: {noteData.laneIndex}. Using default (0).");
-        }
-
-        // 오프셋 값 적용 (offsetValue가 0이 아니면 적용됨)
+        float spawnY = (noteData.laneIndex >= 0 && noteData.laneIndex < laneYPositions.Length) ? laneYPositions[noteData.laneIndex] : 0f;
         spawnY += offsetValue;
+        float finalX = spawnPoint.position.x + xOffset;
 
-        // 2. 스폰 위치 정의
-        Vector3 spawnPosition = new Vector3(spawnPoint.position.x, spawnY, spawnPoint.position.z);
+        GameObject newNote = Instantiate(prefab, new Vector3(finalX, spawnY, spawnPoint.position.z), Quaternion.identity);
 
-        // 3. 노드 오브젝트 생성
-        GameObject newNote = Instantiate(prefab, spawnPosition, Quaternion.identity);
-
-        // 4. NoteMovement 컴포넌트 설정 및 이동 시작
         NoteMovement noteMovement = newNote.GetComponent<NoteMovement>();
         if (noteMovement != null)
         {
-            noteMovement.Initialize(noteSpeed);
-        }
-        else
-        {
-            Debug.LogError($"Note prefab ({noteData.type}) is missing NoteMovement component.");
+            // Initialize 시 타입 정보도 함께 전달
+            noteMovement.Initialize(noteSpeed, noteData.type);
         }
     }
 
-    private void SpawnNote(NoteInfo noteData)
+    public void SetGameActive(bool isActive)
     {
-        // 1. 기믹 타입에 해당하는 프리팹 가져오기
-        if (!gimmickToPrefabMap.TryGetValue(noteData.type, out GameObject prefab))
-        {
-            Debug.LogWarning($"Prefab not found for gimmick type: {noteData.type}");
-            return;
-        }
+        this.isGameActive = isActive;
+        if (isActive && audioSource != null && !audioSource.isPlaying) audioSource.Play();
+        else if (!isActive && audioSource != null && audioSource.isPlaying) audioSource.Pause();
+    }
 
-        float spawnY = 0f;
-        if (noteData.laneIndex >= 0 && noteData.laneIndex < laneYPositions.Length)
-        {
-            spawnY = laneYPositions[noteData.laneIndex];
-        }
-        else
-        {
-            Debug.LogError($"Invalid laneIndex: {noteData.laneIndex}. Using default (0).");
-        }
-
-        // 2. 스폰 위치 정의: (SpawnPoint의 X, 계산된 spawnY, SpawnPoint의 Z)
-        Vector3 spawnPosition = new Vector3(spawnPoint.position.x, spawnY, spawnPoint.position.z);
-
-        // 3. 노드 오브젝트 생성
-        GameObject newNote = Instantiate(prefab, spawnPosition, Quaternion.identity);
-
-        // 3. NoteMovement 컴포넌트 설정 및 이동 시작
-        NoteMovement noteMovement = newNote.GetComponent<NoteMovement>();
-        if (noteMovement != null)
-        {
-            noteMovement.Initialize(noteSpeed);
-        }
-        else
-        {
-            Debug.LogError("Note prefab is missing NoteMovement component.");
-        }
+    public void StopGame()
+    {
+        this.isGameActive = false;
+        if (audioSource != null) audioSource.Stop();
+        foreach (NoteMovement note in FindObjectsByType<NoteMovement>(FindObjectsSortMode.None)) Destroy(note.gameObject);
     }
 }

@@ -29,7 +29,8 @@ public class CameraController : MonoBehaviour
         Vector3 targetPosition = player.position + offset;
 
         float clampedX = Mathf.Clamp(targetPosition.x, minX, maxX);
-        float clampedY = Mathf.Clamp(targetPosition.y, minY, maxY);
+        //float clampedY = Mathf.Clamp(targetPosition.y, minY, maxY);
+        float clampedY = 0f;
 
         transform.position = new Vector3(clampedX, clampedY, targetPosition.z);
     }

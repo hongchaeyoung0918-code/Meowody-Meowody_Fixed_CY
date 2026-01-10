@@ -1,0 +1,121 @@
+{
+    "musicTitle": "New Song",
+    "musicArtist": "Unknown Artist",
+    "notes": [
+        {
+            "time": 5.2906575202941898,
+            "type": "Slide",
+            "laneIndex": 0
+        },
+        {
+            "time": 5.823990821838379,
+            "type": "NormalJump1",
+            "laneIndex": 1
+        },
+        {
+            "time": 6.399977207183838,
+            "type": "NormalJump1",
+            "laneIndex": 2
+        },
+        {
+            "time": 6.869319915771484,
+            "type": "Slide",
+            "laneIndex": 0
+        },
+        {
+            "time": 8.831995010375977,
+            "type": "Attack",
+            "laneIndex": 0
+        },
+        {
+            "time": 9.301315307617188,
+            "type": "Attack",
+            "laneIndex": 0
+        },
+        {
+            "time": 9.962653160095215,
+            "type": "Attack",
+            "laneIndex": 0
+        },
+        {
+            "time": 10.645328521728516,
+            "type": "Trampoline",
+            "laneIndex": 0
+        },
+        {
+            "time": 11.178662300109864,
+            "type": "Slide",
+            "laneIndex": 0
+        },
+        {
+            "time": 11.73331069946289,
+            "type": "DoubleJump",
+            "laneIndex": 0
+        },
+        {
+            "time": 12.202652931213379,
+            "type": "DoubleJump",
+            "laneIndex": 0
+        },
+        {
+            "time": 13.205328941345215,
+            "type": "DoubleJump",
+            "laneIndex": 2
+        },
+        {
+            "time": 13.781314849853516,
+            "type": "DoubleJump",
+            "laneIndex": 2
+        },
+        {
+            "time": 15.445328712463379,
+            "type": "Slide",
+            "laneIndex": 0
+        },
+        {
+            "time": 15.87199592590332,
+            "type": "DoubleJump",
+            "laneIndex": 0
+        },
+        {
+            "time": 16.319976806640626,
+            "type": "DoubleJump",
+            "laneIndex": 0
+        },
+        {
+            "time": 16.703990936279298,
+            "type": "Attack",
+            "laneIndex": 0
+        },
+        {
+            "time": 17.429319381713868,
+            "type": "DoubleJump",
+            "laneIndex": 1
+        },
+        {
+            "time": 18.303991317749025,
+            "type": "DoubleJump",
+            "laneIndex": 2
+        },
+        {
+            "time": 18.645328521728517,
+            "type": "DoubleJump",
+            "laneIndex": 2
+        },
+        {
+            "time": 19.00798225402832,
+            "type": "DoubleJump",
+            "laneIndex": 2
+        },
+        {
+            "time": 19.434648513793947,
+            "type": "NormalJump1",
+            "laneIndex": 2
+        },
+        {
+            "time": 20.010658264160158,
+            "type": "Attack",
+            "laneIndex": 2
+        }
+    ]
+}

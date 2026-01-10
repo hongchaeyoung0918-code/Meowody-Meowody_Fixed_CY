@@ -1,4 +1,4 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using System.Collections;
 using TMPro.Examples;
 
@@ -8,13 +8,13 @@ public class PlayerController : MonoBehaviour
 
     [Header("Jump Settings")]
     public float jumpForce = 10f;
-    public int maxJumpCount = 1; //´õºí Á¡ÇÁ ºñÈ°¼ºÈ­
+    public int maxJumpCount = 1; //ë”ë¸” ì í”„ ë¹„í™œì„±í™”
     private int currentJumpCount = 0;
 
     public float trampolineJumpForce = 15f;
 
     [Header("Invincibility Settings")]
-    public float invincibilityDuration = 2.0f; //ÇÇ°İ ÈÄ ¹«Àû
+    public float invincibilityDuration = 2.0f; //í”¼ê²© í›„ ë¬´ì 
     private bool isInvincible = false;
 
     [Header("Slide Settings")]
@@ -26,25 +26,33 @@ public class PlayerController : MonoBehaviour
     public float colliderHeightAdjustment = 0.5f;
 
     [Header("Note Attack Settings")]
-    public GameObject notePrefab;     // À¯´ÏÆ¼¿¡¼­ ÁöÁ¤ÇÒ À½Ç¥ ÇÁ¸®ÆÕ
+    public GameObject notePrefab;     // ìœ ë‹ˆí‹°ì—ì„œ ì§€ì •í•  ìŒí‘œ í”„ë¦¬íŒ¹
     public float noteSpawnOffset = 0.8f;
     public float noteSpawnHeight = 0.5f;
 
     [Header("Ground Check Settings")]
-    public float groundCheckDistance = 0.1f; // ¶¥À» °¨ÁöÇÒ °Å¸® (ÀÛÀ»¼ö·Ï Á¤È®)
+    public float groundCheckDistance = 0.1f; // ë•…ì„ ê°ì§€í•  ê±°ë¦¬ (ì‘ì„ìˆ˜ë¡ ì •í™•)
     public LayerMask groundLayer;
 
     [Header("Wall Check Settings")]
     public float wallCheckDistance = 0.15f;
 
-    [Header("Game State")] 
+    [Header("Game State")]
     public Transform respawnPoint;
 
     [Header("Respawn Settings")]
-    public float respawnGraceTime = 0.5f; // ¸®½ºÆù ÈÄ ½ÇÆĞ °¨Áö ¹«½Ã ½Ã°£ (0.5ÃÊ)
-    private float respawnTimer = 0f; // ¸®½ºÆù ¹«Àû Å¸ÀÌ¸Ó
+    public float respawnGraceTime = 0.5f; // ë¦¬ìŠ¤í° í›„ ì‹¤íŒ¨ ê°ì§€ ë¬´ì‹œ ì‹œê°„ (0.5ì´ˆ)
+    private float respawnTimer = 0f; // ë¦¬ìŠ¤í° ë¬´ì  íƒ€ì´ë¨¸
 
-    private float failCheckTime = 0.2f; // ¸ØÃã °¨Áö ½Ã°£
+    [Header("Audio Settings")]
+    public AudioClip jumpSound;
+    public AudioClip slideSound;
+    public AudioClip noteAttackSound;
+    public AudioClip hitSound;
+    private AudioSource audioSource;
+
+
+    private float failCheckTime = 0.2f; // ë©ˆì¶¤ ê°ì§€ ì‹œê°„
     private float stopTimer = 0f;
     private bool isGameOver = false;
 
@@ -66,52 +74,96 @@ public class PlayerController : MonoBehaviour
 
     private float initialXPosition;
 
+    private ColorManager colorManager;
+
+    [Header("Animation Settings")]
+    public Animator anim;
+    public GameObject currentRigObject;
+    [Header("Death Prefab")]
+    public GameObject deathRigPrefab;
+    private float deathAnimationDuration = 1.5f;
+
+
+    private readonly string IsRunningParam = "IsRunning";
+    private readonly string IsJumpingParam = "IsJumping";
+    private readonly string IsSlidingParam = "IsSliding";
+    private readonly string IsHittingParam = "IsHitting";
+    private readonly string IsGuitarParam = "IsGuitar";
+
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         capsuleCollider = GetComponent<CapsuleCollider2D>();
+        audioSource = GetComponent<AudioSource>();
 
-        originalScale = transform.localScale;
-
-        if(capsuleCollider != null)
+        if (audioSource == null)
         {
-            originalColliderSize = capsuleCollider.size;
-            originalColliderOffset = capsuleCollider.offset;
-            wallCheckDistance = (capsuleCollider.size.x / 2f) + 0.05f; // 0.05f´Â ¹Ì¼¼ÇÑ ¿©À¯ °ø°£
+            Debug.LogWarning("PlayerController requires an AudioSource component on the same GameObject.");
+        }
+
+        if (currentRigObject == null)
+        {
+            Transform rigTransform = transform.Find("Player_Normal");
+            if (rigTransform != null) currentRigObject = rigTransform.gameObject;
+        }
+
+        if (currentRigObject != null)
+        {
+            anim = currentRigObject.GetComponent<Animator>();
         }
         else
         {
-            Debug.LogError("PlayerController requires a CapsuleCollider2D component on the same GameObject.");
+            anim = GetComponent<Animator>() ?? GetComponentInChildren<Animator>();
         }
 
-        if (rb == null)
+        originalScale = transform.localScale;
+
+        if (capsuleCollider != null)
         {
-            Debug.LogError("PlayerController requires a Rigidbody2D component on the same GameObject.");
-            enabled = false;
+            originalColliderSize = capsuleCollider.size;
+            originalColliderOffset = capsuleCollider.offset;
+            wallCheckDistance = (capsuleCollider.size.x / 2f) + 0.05f;
         }
 
         uiManager = FindFirstObjectByType<MainUIManager>();
-        if (uiManager == null)
-        {
-            Debug.LogError("MainUIManager¸¦ ¾À¿¡¼­ Ã£À» ¼ö ¾ø½À´Ï´Ù! MainScene¿¡ ¹èÄ¡Çß´ÂÁö È®ÀÎÇÏ¼¼¿ä.");
-        }
-
         playerStats = FindFirstObjectByType<PlayerStats>();
-        if (playerStats == null)
-        {
-            Debug.LogError("PlayerStats¸¦ ¾À¿¡¼­ Ã£À» ¼ö ¾ø½À´Ï´Ù!");
-            enabled = false;
-        }
+        colorManager = ColorManager.Instance;
 
-        //À§Ä¡ º¸Á¤
         Vector3 startPosition = transform.position;
         transform.position = new Vector3(startPosition.x, 0f, startPosition.z);
 
         initialXPosition = transform.position.x;
+
+        SetAnimationBool(IsRunningParam, true);
     }
 
     void Update()
     {
+        // ================= [íŠœí† ë¦¬ì–¼ ì…ë ¥ í•„í„°ë§ ì¶”ê°€] =================
+        if (TutorialManager.Instance != null && TutorialManager.Instance.IsPaused())
+        {
+            string allowed = TutorialManager.Instance.TargetAction;
+
+            if (allowed == "UP")
+            {
+                // Wë‚˜ ìœ„ë°©í–¥í‚¤ê°€ ëˆŒë¦° í”„ë ˆì„ë§Œ ì•„ë˜ ë¡œì§ì„ ìˆ˜í–‰í•˜ë„ë¡ í—ˆìš©
+                if (!(Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow)))
+                    return;
+            }
+            else if (allowed == "DOWN")
+            {
+                // Së‚˜ ì•„ë˜ë°©í–¥í‚¤ê°€ ëˆŒë¦° í”„ë ˆì„ë§Œ ì•„ë˜ ë¡œì§ì„ ìˆ˜í–‰í•˜ë„ë¡ í—ˆìš©
+                if (!(Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow)))
+                    return;
+            }
+            else
+            {
+                // í—ˆìš©ëœ ì•¡ì…˜ì´ ì—†ëŠ”ë° ì¼ì‹œì •ì§€ ì¤‘ì´ë©´ ë¬´ì¡°ê±´ ë¦¬í„´
+                return;
+            }
+        }
+        // ===========================================================
+
         if (!isInvincible)
         {
             CheckForFailure();
@@ -123,32 +175,32 @@ public class PlayerController : MonoBehaviour
         HandleJump();
         HandleNoteShoot();
 
+        UpdateAnimationState();
+
         if (!isGameOver)
         {
             transform.position = new Vector3(
-            initialXPosition,
-            transform.position.y,
-            transform.position.z
+                initialXPosition,
+                transform.position.y,
+                transform.position.z
             );
 
             rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
         }
         else
         {
-            // °ÔÀÓ ¿À¹ö ½Ã ¿ÏÀüÈ÷ ¸ØÃã
             rb.linearVelocity = Vector2.zero;
         }
     }
 
     void CheckIfGrounded()
     {
-        Vector2 raycastOrigin = capsuleCollider.bounds.center;
-
-        raycastOrigin.y = capsuleCollider.bounds.min.y;
+        Vector2 raycastOrigin = new Vector2(
+                capsuleCollider.bounds.center.x,
+                capsuleCollider.bounds.min.y
+            );
 
         RaycastHit2D hit = Physics2D.Raycast(raycastOrigin, Vector2.down, groundCheckDistance, groundLayer);
-
-        Debug.DrawRay(raycastOrigin, Vector2.down * groundCheckDistance, hit.collider != null ? Color.green : Color.red);
 
         if (hit.collider != null)
         {
@@ -167,23 +219,15 @@ public class PlayerController : MonoBehaviour
     void CheckForFailure()
     {
         if (respawnTimer > 0f) return;
-
         if (playerStats == null || isGameOver || isFailing) return;
 
         Vector2 wallRaycastOrigin = capsuleCollider.bounds.center;
-
         RaycastHit2D wallHit = Physics2D.Raycast(wallRaycastOrigin, Vector2.right, wallCheckDistance, groundLayer);
 
-        // µğ¹ö±×¿ë ¶óÀÎ
-        Debug.DrawRay(wallRaycastOrigin, Vector2.right * wallCheckDistance, wallHit.collider != null ? Color.blue : Color.yellow);
-
-        bool isStuck = isGrounded && wallHit.collider != null;
-
-        if (isStuck) // (¼Óµµ Á¶°Ç Á¦°Å ¹öÀü »ç¿ë)
+        if (isGrounded && wallHit.collider != null)
         {
             stopTimer += Time.deltaTime;
-
-            if (stopTimer >= failCheckTime) // failCheckTime = 0.2f
+            if (stopTimer >= failCheckTime)
             {
                 isFailing = true;
                 ProcessFailure();
@@ -196,78 +240,58 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    // ProcessFailure() ÇÔ¼ö¸¦ ¹«Àû ·ÎÁ÷¿¡ ¸ÂÃç ¼öÁ¤
     void ProcessFailure()
     {
-        // ÀÌ¹Ì ¹«Àû »óÅÂÀÌ¸é ÇÇ°İ ¹«½Ã
         if (isInvincible) return;
 
-        playerStats.HP--;
-        Debug.Log($"ÇÃ·¹ÀÌ¾î ÇÇ°İ! ³²Àº HP: {playerStats.HP}");
+        SetAnimationTrigger(IsHittingParam);
+        PlaySound(hitSound);
 
+        if (colorManager != null) colorManager.DecreaseGaugeOnHit();
+
+        playerStats.HP--;
         if (playerStats.HP <= 0)
         {
-            isGameOver = true;
-            currentMoveSpeed = 0f;
-            enabled = false;
-            // UI Manager Game Over È£Ãâ
-            if (uiManager != null) uiManager.ShowGameOver();
+            StartCoroutine(HandleDeathSequence());
         }
         else
         {
-            // HP°¡ ³²¾Ò´Ù¸é ¹«Àû »óÅÂ·Î ÀüÈ¯
             StartCoroutine(InvincibilityCoroutine());
         }
     }
 
-    // ProcessFailureFromCitizenCollision() ÇÔ¼ö¸¦ ProcessFailure()·Î ¿¬°á
+    // CitizenController.cs ì—ëŸ¬ í•´ê²°ìš©
     public void ProcessFailureFromCitizenCollision()
     {
-        // ½Ã¹Î Ãæµ¹Àº º®¿¡ ¹Ú´Â °Í°ú µ¿ÀÏÇÏ°Ô Ã³¸®ÇÏµÇ, isInvincibleÀ» È®ÀÎÇØ¾ß ÇÕ´Ï´Ù.
         if (isInvincible || isGameOver) return;
-
         ProcessFailure();
-
-        Debug.Log("½Ã¹Î°ú Ãæµ¹·Î ÀÎÇÑ ÇÇ°İ Ã³¸® ¿Ï·á.");
+        Debug.Log("ì‹œë¯¼ê³¼ ì¶©ëŒë¡œ ì¸í•œ í”¼ê²© ì²˜ë¦¬ ì™„ë£Œ.");
     }
 
-    // ProcessFailureFromObstacle() ÇÔ¼ö (ÀÏ¹İ Àå¾Ö¹°)¸¦ ProcessFailure()·Î ¿¬°á
+    // ì¼ë°˜ ì¥ì• ë¬¼ ì¶©ëŒ ì²˜ë¦¬
     public void ProcessFailureFromObstacle()
     {
-        // ÀÏ¹İ Àå¾Ö¹° Ãæµ¹ Ã³¸®
         if (isInvincible || isGameOver) return;
-
         ProcessFailure();
-
-        Debug.Log("Àå¾Ö¹°°ú Ãæµ¹·Î ÀÎÇÑ ÇÇ°İ Ã³¸® ¿Ï·á.");
+        Debug.Log("ì¥ì• ë¬¼ê³¼ ì¶©ëŒë¡œ ì¸í•œ í”¼ê²© ì²˜ë¦¬ ì™„ë£Œ.");
     }
 
-    // ¹«Àû »óÅÂ ÄÚ·çÆ¾
     IEnumerator InvincibilityCoroutine()
     {
         isInvincible = true;
-        Debug.Log("¹«Àû »óÅÂ ½ÃÀÛ!");
-
-        SpriteRenderer sr = GetComponent<SpriteRenderer>();
-        //Collider2D col = GetComponent<Collider2D>(); // ÀÏ¹İ Äİ¶óÀÌ´õ (º® Ãæµ¹¿ë)
-
-        // ±ôºıÀÓ È¿°ú (¼±ÅÃ »çÇ×)
+        SpriteRenderer sr = GetComponentInChildren<SpriteRenderer>();
         if (sr != null)
         {
-            for (float t = 0; t < invincibilityDuration; t += 0.15f) // 0.15ÃÊ °£°İÀ¸·Î ±ôºıÀÓ
+            for (float t = 0; t < invincibilityDuration; t += 0.15f)
             {
                 sr.enabled = !sr.enabled;
                 yield return new WaitForSeconds(0.075f);
             }
-            sr.enabled = true; // ¹«Àû Á¾·á ÈÄ ´Ù½Ã º¸ÀÌ°Ô ¼³Á¤
+            sr.enabled = true;
         }
-
         isInvincible = false;
-        Debug.Log("¹«Àû »óÅÂ Á¾·á");
-
         currentJumpCount = 0;
     }
-
 
     void HandleJump()
     {
@@ -275,32 +299,24 @@ public class PlayerController : MonoBehaviour
 
         if (!isSliding && jumpInput)
         {
-            // ¼öÁ¤: isGrounded ÀÏ ¶§¸¸ Á¡ÇÁ¸¦ Çã¿ë
             if (isGrounded && currentJumpCount == 0)
             {
-                // ¼öÁ÷ ¼Óµµ ¸®¼Â ÈÄ Á¡ÇÁ
                 rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
                 rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
-
-                currentJumpCount = 1; // Á¡ÇÁ È½¼ö 1·Î ¼³Á¤ (°øÁß¿¡ ÀÖÀ½À» Ç¥½Ã)
-                isGrounded = false;
-
-                Debug.Log("ÀÏ¹İ Á¡ÇÁ ½ÇÇà.");
+                currentJumpCount = 1;
+                PlaySound(jumpSound);
             }
         }
     }
 
+    // JumpOrb.cs ì—ëŸ¬ í•´ê²°ìš©
     public void PerformAirJumpOnContact()
     {
         if (!isGrounded)
         {
-            // 1. ¼öÁ÷ ¼Óµµ ¸®¼Â
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
-
-            // 2. Á¡ÇÁ ½ÇÇà (Á¡ÇÁ ±ËÀûÀ» °»½Å)
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
-
-            Debug.Log("Jump Orb Jump ½ÇÇà!");
+            Debug.Log("Jump Orb Jump ì‹¤í–‰!");
         }
     }
 
@@ -313,9 +329,7 @@ public class PlayerController : MonoBehaviour
 
         if (isSliding)
         {
-            slideTimer -= Time.deltaTime;
-
-            if (slideTimer <= 0 || (Input.GetKeyUp(KeyCode.S) || Input.GetKeyUp(KeyCode.DownArrow)))
+            if (Input.GetKeyUp(KeyCode.S) || Input.GetKeyUp(KeyCode.DownArrow))
             {
                 EndSlide();
             }
@@ -325,49 +339,30 @@ public class PlayerController : MonoBehaviour
     void StartSlide()
     {
         isSliding = true;
-        slideTimer = slideDuration;
-
-        //currentMoveSpeed = moveSpeed * slideSpeedMultiplier;
-
-        transform.localScale = originalScale * slideHeightScale;
+        PlaySound(slideSound);
 
         if (capsuleCollider != null)
         {
             float newHeight = originalColliderSize.y * slideHeightScale;
-            float newWidth = originalColliderSize.x * slideHeightScale;
-
             float heightDifference = originalColliderSize.y - newHeight;
             float yOffsetAdjustment = heightDifference / 2f;
 
-            capsuleCollider.size = new Vector2(newWidth, newHeight);
-
+            capsuleCollider.size = new Vector2(originalColliderSize.x, newHeight);
             capsuleCollider.offset = new Vector2(originalColliderOffset.x, originalColliderOffset.y - yOffsetAdjustment);
-
-
-            if (rb != null)
-            {
-                rb.WakeUp();
-            }
+            rb.WakeUp();
         }
     }
 
     void EndSlide()
     {
         isSliding = false;
-
-        //currentMoveSpeed = moveSpeed;
-
         transform.localScale = originalScale;
 
         if (capsuleCollider != null)
         {
             capsuleCollider.size = originalColliderSize;
             capsuleCollider.offset = originalColliderOffset;
-
-            if (rb != null)
-            {
-                rb.WakeUp();
-            }
+            rb.WakeUp();
         }
     }
 
@@ -375,45 +370,77 @@ public class PlayerController : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.D))
         {
-            if (notePrefab == null)
-            {
-                Debug.LogError("Note PrefabÀÌ ¼³Á¤µÇÁö ¾Ê¾Ò½À´Ï´Ù!");
-                return;
-            }
+            if (notePrefab == null) return;
 
-            // ÇÃ·¹ÀÌ¾î ¿À¸¥ÂÊ (¾Õ)¿¡ À½Ç¥ »ı¼º
+            SetAnimationTrigger(IsGuitarParam);
+            PlaySound(noteAttackSound);
+
             Vector3 spawnPosition = transform.position
-                      + Vector3.right * noteSpawnOffset
-                      + Vector3.up * noteSpawnHeight;
+                                  + Vector3.right * noteSpawnOffset
+                                  + Vector3.up * noteSpawnHeight;
 
-            // À½Ç¥ ÀÎ½ºÅÏ½ºÈ­
             GameObject note = Instantiate(notePrefab, spawnPosition, Quaternion.identity);
-
-            // NoteProjectile ½ºÅ©¸³Æ®¿¡ ¹ß»ç ½ÅÈ£ Àü´Ş
             NoteProjectile noteProjectile = note.GetComponent<NoteProjectile>();
             if (noteProjectile != null)
             {
-                const float attackProjectileSpeed = 10.0f;
-                noteProjectile.Launch(attackProjectileSpeed);
+                noteProjectile.Launch(10.0f);
             }
-
-            Debug.Log("À½Ç¥ ¹ß»ç!");
         }
     }
+
+    void UpdateAnimationState()
+    {
+        if (anim == null || isGameOver) return;
+
+        bool inAir = !isGrounded && !isSliding;
+        SetAnimationBool(IsJumpingParam, inAir);
+        SetAnimationBool(IsSlidingParam, isSliding);
+
+        if (!isSliding && !inAir)
+        {
+            SetAnimationBool(IsRunningParam, !isGameOver);
+        }
+    }
+
+    void SetAnimationBool(string paramName, bool value) { if (anim != null) anim.SetBool(paramName, value); }
+    void SetAnimationTrigger(string paramName) { if (anim != null) anim.SetTrigger(paramName); }
+
+    void HandleDeathModelChange()
+    {
+        if (currentRigObject != null) currentRigObject.SetActive(false);
+        if (deathRigPrefab == null) return;
+
+        GameObject deathModel = Instantiate(deathRigPrefab, transform.position, transform.rotation, transform);
+        deathModel.SetActive(true);
+    }
+
+    IEnumerator HandleDeathSequence()
+    {
+        isGameOver = true;
+        enabled = false;
+        rb.linearVelocity = Vector2.zero;
+
+        if (uiManager != null && uiManager.noteManager != null)
+        {
+            uiManager.noteManager.StopGame();
+        }
+
+        HandleDeathModelChange();
+        yield return new WaitForSeconds(deathAnimationDuration);
+
+        if (uiManager != null) uiManager.ShowGameOver();
+    }
+
+
     void OnCollisionEnter2D(Collision2D collision)
     {
-/*        if (collision.gameObject.CompareTag("Note_Obstacle"))
+        if (((1 << collision.gameObject.layer) & groundLayer) != 0 || collision.gameObject.CompareTag("Ground"))
         {
-            ProcessFailureFromObstacle();
-            // Ãæµ¹ÇÑ Àå¾Ö¹° Á¦°Å (¿É¼Ç)
-            Destroy(collision.gameObject);
-        }*/
-
-        if (collision.gameObject.CompareTag("Ground"))
-        {
-            if (!isGameOver)
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
+            if (!isGrounded)
             {
-                rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+                currentJumpCount = 0;
+                isGrounded = true;
             }
         }
     }
@@ -423,28 +450,29 @@ public class PlayerController : MonoBehaviour
         if (other.gameObject.CompareTag("Note_Obstacle"))
         {
             ProcessFailureFromObstacle();
-
-            // ÇÇ°İ ÈÄ ³ëµå Á¦°Å (Ç®¸µ¿¡ ¹İÈ¯)
             other.gameObject.SetActive(false);
             Destroy(other.gameObject);
             return;
         }
 
+        if (other.gameObject.CompareTag("Note_Obstacle_Persistent"))
+        {
+            ProcessFailureFromObstacle();
+            return;
+        }
+
         if (other.gameObject.CompareTag("EndFlag"))
         {
-            Debug.Log("Trigger with EndFlag");
-            currentMoveSpeed = 0f;
-
-            if (uiManager != null)
-            {
-                uiManager.ShowGameClear();
-            }
-
+            if (uiManager != null) uiManager.ShowGameClear();
             enabled = false;
         }
     }
 
-    void OnCollisionExit2D(Collision2D collision)
+    void PlaySound(AudioClip clip)
     {
+        if (audioSource != null && clip != null)
+        {
+            audioSource.PlayOneShot(clip);
+        }
     }
 }

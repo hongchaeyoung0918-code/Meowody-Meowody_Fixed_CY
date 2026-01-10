@@ -7,6 +7,8 @@ TagManager:
   - Ground
   - EndFlag
   - Note_Obstacle
+  - Note_Obstacle_Persistent
+  - PSD
   layers:
   - Default
   - TransparentFX
@@ -43,6 +45,9 @@ TagManager:
   m_SortingLayers:
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: AlwaysOnTop
+    uniqueID: 2522718577
     locked: 0
   m_RenderingLayers:
   - Default

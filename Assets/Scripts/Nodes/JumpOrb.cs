@@ -9,6 +9,13 @@ public class JumpOrb : MonoBehaviour
     private SpriteRenderer spriteRenderer;
     private bool isUsed = false;
 
+    private AudioSource audioSource;
+
+    void Awake()
+    {
+        audioSource = GetComponent<AudioSource>();
+    }
+
     void Start()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
@@ -28,12 +35,19 @@ public class JumpOrb : MonoBehaviour
     {
         if (other.CompareTag("Player") && !isUsed)
         {
+            //SimplePlayerController player = other.GetComponent<SimplePlayerController>();
             PlayerController player = other.GetComponent<PlayerController>();
 
             if (player != null)
             {
                 // 1. 플레이어에게 즉시 점프 실행 요청
                 player.PerformAirJumpOnContact();
+
+                if (audioSource != null)
+                {
+                    audioSource.Play();
+                    Debug.Log("jump 재생!");
+                }
 
                 // 2. 연속 사용 방지 코루틴 시작
                 StartCoroutine(DisableForTime());

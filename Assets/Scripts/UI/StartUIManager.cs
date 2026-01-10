@@ -78,4 +78,10 @@ public class StartUIManager : MonoBehaviour
         StartUI.SetActive(false);
         PlayerRoomUI.SetActive(true);
     }
+
+    public void BackToStartUI()
+    {
+        StartUI.SetActive(true);
+        PlayerRoomUI.SetActive(false);
+    }
 }

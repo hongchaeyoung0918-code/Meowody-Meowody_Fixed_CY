@@ -1207,6 +1207,8 @@ MonoBehaviour:
   moveSpeed: 5
   jumpForce: 7
   maxJumpCount: 2
+  trampolineJumpForce: 15
+  invincibilityDuration: 2
   slideSpeedMultiplier: 1.5
   slideDuration: 0.5
   slideHeightScale: 0.5
@@ -2528,7 +2530,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1277019318
 MonoBehaviour:
   m_ObjectHideFlags: 0
