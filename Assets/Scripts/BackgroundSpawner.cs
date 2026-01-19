@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class BackgroundSpawner : MonoBehaviour
@@ -10,8 +11,10 @@ public class BackgroundSpawner : MonoBehaviour
     [Header("배경 너비 설정")]
     public float backgroundWidth = 20f;
     
-    public float spawnBuffer = 15f;         // 카메라 시야 + 추가 버퍼 (이 거리 이내에 생성)
+    public float spawnBuffer = 3f;         // 카메라 시야 + 추가 버퍼 (이 거리 이내에 생성)
     private int repeatingIndex = 0;
+
+    public float mapBaseSpeed = 5f; // 맵의 기본 이동 속도
 
     // === 장식 오브젝트 설정 ===
     public GameObject[] decorationPrefabs;   // 풍차/울타리 등 장식 오브젝트 프리팹 배열
@@ -23,49 +26,90 @@ public class BackgroundSpawner : MonoBehaviour
     // 이 값을 음수로 설정하여 장식 오브젝트의 높이를 낮춥니다. (Inspector에서 설정)
     public float decorationYOffset = -2f;
 
+    private bool isGameActive = false;
+
+    private float psdBackgroundYOffset = -5.0f;
+
     void Start()
     {
+        /*        if (repeatingBackgrounds.Length > 0)
+                {
+                    SpriteRenderer sr = repeatingBackgrounds[0].GetComponentInChildren<SpriteRenderer>();
+                    if (sr != null)
+                    {
+                        backgroundWidth = sr.bounds.size.x;
+                    }
+                }*/
 
         if (repeatingBackgrounds.Length > 0)
         {
-            SpriteRenderer sr = repeatingBackgrounds[0].GetComponentInChildren<SpriteRenderer>();
-            if (sr != null)
+            // 1. 모든 자식 SpriteRenderer 중 가장 큰 너비를 가진 것을 찾습니다.
+            SpriteRenderer[] srs = repeatingBackgrounds[0].GetComponentsInChildren<SpriteRenderer>(true);
+            SpriteRenderer fullWidthSr = null;
+            float maxBoundsX = 0f;
+
+            foreach (SpriteRenderer sr in srs)
             {
-                // 월드 좌표계에서의 너비를 사용합니다.
-                backgroundWidth = sr.bounds.size.x;
+                // SpriteRenderer의 월드 공간 바운드 너비를 확인
+                if (sr.bounds.size.x > maxBoundsX)
+                {
+                    maxBoundsX = sr.bounds.size.x;
+                    fullWidthSr = sr;
+                }
+            }
+
+            if (fullWidthSr != null)
+            {
+                // 가장 넓은 SpriteRenderer의 너비로 backgroundWidth 설정
+                backgroundWidth = fullWidthSr.bounds.size.x;
+                Debug.Log($"Background Width Calculated: {backgroundWidth}");
             }
             else
             {
-                Debug.LogError("Repeating Background 프리팹에 SpriteRenderer 컴포넌트가 없습니다!");
+                // SpriteRenderer를 찾지 못한 경우
+                Debug.LogWarning("Could not find any SpriteRenderer in background prefab. Using default backgroundWidth.");
             }
         }
 
-        // 초기 시작 위치 설정 (첫 배경은 0에서 시작)
-        nextSpawnX = backgroundSpawnPoint.position.x;
-        SetNextDecorationX(nextSpawnX);
+        nextSpawnX = Camera.main.transform.position.x;
+        nextDecorationX = nextSpawnX;
 
         float initialFillBoundary = Camera.main.transform.position.x + (backgroundWidth * 3f);
-        
-        // 만약 다음 생성 위치(nextSpawnX)가 아직 화면 경계(initialFillBoundary)를 넘지 않았다면 계속 생성
+
+        // 배경 초기 생성
         while (initialFillBoundary > nextSpawnX)
         {
             SpawnRepeatingBackground();
         }
 
-        Debug.Log("Calculated Background Width: " + backgroundWidth);
+        // 장식 초기 생성 (화면이 채워질 때까지)
+        float decorationFillBoundary = Camera.main.transform.position.x + spawnBuffer;
+        while (decorationFillBoundary > nextDecorationX)
+        {
+            SpawnRandomDecoration();
+        }
     }
 
     void Update()
     {
-        float cameraRightEdge = Camera.main.transform.position.x + spawnBuffer;
+        if (!isGameActive) return;
 
-        while (cameraRightEdge > nextSpawnX)
+        // 맵 이동에 따라 다음 생성 지점을 왼쪽으로 이동
+        float movement = mapBaseSpeed * Time.deltaTime;
+        nextSpawnX -= movement;
+        nextDecorationX -= movement;
+
+        //float spawnBoundary = backgroundSpawnPoint.position.x; // 일반적으로 0f
+        float cameraRightEdgeX = Camera.main.ViewportToWorldPoint(new Vector3(1, 0, 0)).x;
+        float spawnBoundary = cameraRightEdgeX + spawnBuffer;
+
+/*        if (nextSpawnX <= spawnBoundary)
         {
             SpawnRepeatingBackground();
-        }
+        }*/
 
-        // 2. 랜덤 장식 오브젝트 생성 확인
-        if (cameraRightEdge > nextDecorationX)
+        // 3. 랜덤 장식 오브젝트 생성 확인 (핵심 수정: while 대신 if 사용)
+        if (nextDecorationX <= spawnBoundary)
         {
             SpawnRandomDecoration();
         }
@@ -75,20 +119,28 @@ public class BackgroundSpawner : MonoBehaviour
     {
         if (repeatingBackgrounds.Length == 0) return;
 
-        // 수정: 인덱스를 사용하여 배열의 프리팹을 순차적으로 선택합니다.
         GameObject bgPrefab = repeatingBackgrounds[repeatingIndex];
+        float spawnY = backgroundSpawnPoint.position.y;
 
-        // 인덱스를 증가시키고 배열의 끝에 도달하면 0으로 리셋하여 순환합니다.
+        if (bgPrefab.GetComponent<PSDTag>() != null)
+        {
+            // PSD 배경일 경우에만 오프셋을 적용합니다.
+            spawnY += psdBackgroundYOffset;
+        }
+
         repeatingIndex++;
         if (repeatingIndex >= repeatingBackgrounds.Length)
         {
             repeatingIndex = 0;
         }
 
-        Vector3 spawnPos = new Vector3(nextSpawnX, backgroundSpawnPoint.position.y, backgroundSpawnPoint.position.z);
+        //Vector3 spawnPos = new Vector3(nextSpawnX, backgroundSpawnPoint.position.y, backgroundSpawnPoint.position.z);
+        //Instantiate(bgPrefab, spawnPos, Quaternion.identity, transform);
+        Vector3 spawnPos = new Vector3(nextSpawnX, spawnY, backgroundSpawnPoint.position.z);
         Instantiate(bgPrefab, spawnPos, Quaternion.identity, transform);
 
-        // 다음 생성 지점 업데이트
+
+        // 다음 생성 지점을 현재 배경의 오른쪽 끝으로 업데이트합니다.
         nextSpawnX += backgroundWidth;
     }
 
@@ -96,20 +148,33 @@ public class BackgroundSpawner : MonoBehaviour
     {
         if (decorationPrefabs.Length == 0) return;
 
-        GameObject decPrefab = decorationPrefabs[Random.Range(0, decorationPrefabs.Length)];
+        GameObject decPrefab = decorationPrefabs[UnityEngine.Random.Range(0, decorationPrefabs.Length)];
 
-        // Y축에 decorationYOffset을 적용하여 높이를 조절합니다.
         float spawnY = backgroundSpawnPoint.position.y + decorationYOffset;
+
         Vector3 spawnPos = new Vector3(nextDecorationX, spawnY, backgroundSpawnPoint.position.z - 1f);
         Instantiate(decPrefab, spawnPos, Quaternion.identity, transform);
 
-        // 다음 장식 생성 지점 업데이트
         SetNextDecorationX(nextDecorationX);
     }
 
     void SetNextDecorationX(float currentX)
     {
-        // 현재 위치에서 최소/최대 간격 사이의 랜덤 값만큼 떨어진 곳에 다음 생성 지점 설정
-        nextDecorationX = currentX + Random.Range(minDecorationInterval, maxDecorationInterval);
+        nextDecorationX = currentX + UnityEngine.Random.Range(minDecorationInterval, maxDecorationInterval);
+    }
+
+    public void SetGameActive(bool isActive)
+    {
+        this.isGameActive = isActive;
+
+        // 비활성화 시 Debug 로그 출력
+        if (!isActive)
+        {
+            Debug.Log("BackgroundSpawner: Movement Halted (Dialogue active).");
+        }
+        else
+        {
+            Debug.Log("BackgroundSpawner: Movement Resumed.");
+        }
     }
 }

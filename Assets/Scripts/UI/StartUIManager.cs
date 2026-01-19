@@ -10,7 +10,6 @@ public class StartUIManager : MonoBehaviour
 
     public GameObject StartUI;
     public GameObject SettingUI;
-    public GameObject PlayerRoomUI;
 
     [Header("Audio")]
     public AudioMixer gameMixer;
@@ -52,9 +51,7 @@ public class StartUIManager : MonoBehaviour
     
     public void OnStartButtonClicked()
     {
-        StartUI.SetActive(false);
-        SceneManager.LoadScene("MainScene");
-        //SettingUI.SetActive(true);
+        SceneManager.LoadScene("SelectScene");
     }
 
     public void OnQuitButtonClicked()
@@ -71,11 +68,5 @@ public class StartUIManager : MonoBehaviour
     public void OnCloseSettingButtonClicked()
     {
         SettingUI.SetActive(false);
-    }
-
-    public void OnPlayerRoomOpen()
-    {
-        StartUI.SetActive(false);
-        PlayerRoomUI.SetActive(true);
     }
 }

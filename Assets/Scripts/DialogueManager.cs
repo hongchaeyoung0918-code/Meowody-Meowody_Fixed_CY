@@ -1,15 +1,35 @@
-using UnityEngine;
-using UnityEngine.UI;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
 
 public class DialogueManager : MonoBehaviour
 {
+    [SerializeField] private ToonyVoices _toonyVoices;
+
+    [SerializeField] private TMP_Text _dialogueTextUI;
+
+    private string _currentFullText;
+    private int _characterIndex;
+
     [Header("UI Elements")]
     public GameObject dialoguePanel;
     public TMP_Text nameText;
     public TMP_Text dialogueText;
+    public Image dialoguePanelBackground;
+
+    [Header("Cutscene UI References")]
+    public GameObject cutscenePanel;
+    public Image cutsceneImage;
+
+    [Header("Fade Transition Refences")]
+    public Image fadePanel;
+    public Image startBackgroundImage;
+
+    [Header("Dialogue Background Reference")]
+    public Image dialogueBackgroundImage;
 
     [Header("Character Sprites")]
     public GameObject leftCharacterPanel;
@@ -24,6 +44,11 @@ public class DialogueManager : MonoBehaviour
     private MainUIManager mainUIManager;
     private int activeStage;
 
+    private int _lastDisplayedIndex = -1;
+
+    private bool _isSpeaking = false;
+    private bool _isSentenceFinished = false;
+
     private void Awake()
     {
         mainUIManager = FindFirstObjectByType<MainUIManager>();
@@ -34,21 +59,60 @@ public class DialogueManager : MonoBehaviour
 
         LoadDialogueData("Dialogue");
         LoadCharacterSprites();
-        dialoguePanel.SetActive(false);
+        //dialoguePanel.SetActive(false);
+
+        if (cutscenePanel != null) cutscenePanel.SetActive(false);
+
+        if (dialoguePanelBackground != null)
+        {
+            Color color = dialoguePanelBackground.color;
+            color.a = 1.0f; // A 값을 1.0 (불투명)으로 강제 설정
+            dialoguePanelBackground.color = color;
+        }
     }
 
     void Start()
     {
         activeStage = GameSettings.SelectedStage;
 
-        if (GameSettings.CurrentDialogueType == GameSettings.DialogueType.Intro)
+/*        if (mainUIManager == null)
         {
-            mainUIManager.StartDialogue("Intro");
-        }
-        else if (GameSettings.CurrentDialogueType == GameSettings.DialogueType.Outro)
+            mainUIManager = FindFirstObjectByType<MainUIManager>();
+        }*/
+
+        if (mainUIManager != null)
         {
-            mainUIManager.StartDialogue("Outro");
+            if (GameSettings.CurrentDialogueType == GameSettings.DialogueType.Intro)
+            {
+                mainUIManager.StartDialogue("Intro", activeStage);
+            }
+            else if (GameSettings.CurrentDialogueType == GameSettings.DialogueType.Outro)
+            {
+                mainUIManager.StartDialogue("Outro", activeStage);
+            }
+            else
+            {
+                mainUIManager.HandleDialogueAction("START_GAME");
+            }
         }
+
+        if (fadePanel != null)
+        {
+            Color color = fadePanel.color;
+            color.a = 0.0f;
+            fadePanel.color = color;
+            fadePanel.gameObject.SetActive(false); // 초기에는 비활성화
+        }
+
+        // ToonyVoices 이벤트 구독
+        if (_toonyVoices == null)
+        {
+            _toonyVoices = FindFirstObjectByType<ToonyVoices>();
+        }
+
+        // 2. ToonyVoices 이벤트에 함수 연결
+        _toonyVoices.CharacterSounded.AddListener(OnCharacterSounded);
+        _toonyVoices.SentenceFinished.AddListener(OnDialogueFinished);
     }
 
     void LoadDialogueData(string jsonFileName)
@@ -112,91 +176,252 @@ public class DialogueManager : MonoBehaviour
 
     public void OnNextButtonClick()
     {
-        if (currentDialogue != null)
+        if (_isSpeaking)
         {
-            string nextId = currentDialogue.nextDialogueId;
-
-            if (nextId == "End")
+            if (_toonyVoices != null)
             {
-                EndDialogue();
+                _toonyVoices.Stop();
             }
-            else if (dialogueDictionary.ContainsKey(nextId))
-            {
-                Dialogue nextDialogue = dialogueDictionary[nextId];
 
-                // 다음 대사가 현재 스테이지와 일치할 때만 진행
-                if (nextDialogue.stage == activeStage)
+            dialogueText.text = _currentFullText;
+            _lastDisplayedIndex = _currentFullText.Length - 1;
+
+            _isSpeaking = false;
+            _isSentenceFinished = true;
+            return;
+        }
+
+        if (_isSentenceFinished)
+        {
+            _isSentenceFinished = false;
+
+            if (currentDialogue != null)
+            {
+                string nextId = currentDialogue.nextDialogueId;
+
+                if (nextId == "End")
                 {
-                    SetDialogue(nextDialogue);
+                    EndDialogue();
+                }
+                else if (dialogueDictionary.ContainsKey(nextId))
+                {
+                    Dialogue nextDialogue = dialogueDictionary[nextId];
+
+                    // 다음 대사가 현재 스테이지와 일치할 때만 진행
+                    if (nextDialogue.stage == activeStage)
+                    {
+                        SetDialogue(nextDialogue);
+                    }
+                    else
+                    {
+                        // 대화 흐름이 끝남 (다음 스테이지로 넘어가야 함)
+                        EndDialogue();
+                    }
                 }
                 else
                 {
-                    // 대화 흐름이 끝남 (다음 스테이지로 넘어가야 함)
+                    Debug.LogError("Next Dialogue ID not found: " + nextId);
                     EndDialogue();
                 }
-            }
-            else
-            {
-                Debug.LogError("Next Dialogue ID not found: " + nextId);
-                EndDialogue();
             }
         }
     }
 
     private void SetDialogue(Dialogue dialogue)
     {
+        StopAllCoroutines();
+
+        if (_toonyVoices != null)
+        {
+            _toonyVoices.Stop();
+        }
+
         currentDialogue = dialogue;
+
+        // 피치 설정
+        //string speakerName = dialogue.speaker;
+        //float customPitch = GetPitchForSpeaker(speakerName);
 
         // 1. 대사창 정보 업데이트
         nameText.text = dialogue.name;
-        dialogueText.text = dialogue.text;
+        //dialogueText.text = dialogue.text;
+        dialogueText.text = ""; // 초기화 (OnCharacterSounded 이벤트로 채워짐)
+        _currentFullText = dialogue.text;
+
+        nameText.gameObject.SetActive(true);
+        dialogueText.gameObject.SetActive(true);
+        dialoguePanel.SetActive(true);
+
+        _lastDisplayedIndex = -1;
+        _isSpeaking = true;
+        _isSentenceFinished = false;
+
+        _toonyVoices.Speak(_currentFullText, 3.5f, 0.5f, 0.3f); // 피치 통일
+
+        // 컷씬 시작 조건 확인
+        if (dialogue.isCutscene && cutscenePanel != null && !string.IsNullOrEmpty(dialogue.cutsceneImage))
+        {
+            StartCutscene(dialogue);
+            return;
+        }
+
+        if (!string.IsNullOrEmpty(dialogue.hideCharacterPosition))
+        {
+            if (dialogue.hideCharacterPosition == "Left" && leftCharacterPanel != null)
+            {
+                leftCharacterPanel.SetActive(false);
+                // 숨겨진 캐릭터의 스프라이트도 null로 설정하여 다음 대화에서 다시 등장하지 않게 합니다.
+                leftCharacterImage.sprite = null;
+            }
+            else if (dialogue.hideCharacterPosition == "Right" && rightCharacterPanel != null)
+            {
+                rightCharacterPanel.SetActive(false);
+                rightCharacterImage.sprite = null;
+            }
+        }
 
         // 2. 스탠딩 일러스트 활성화/위치/투명도 조정
 
-        // 모든 캐릭터 패널 비활성화
+        // [수정] 2-1. 모든 캐릭터 패널 비활성화로 초기화 (1인 대화 처리의 시작)
         leftCharacterPanel.SetActive(false);
         rightCharacterPanel.SetActive(false);
 
-        // 현재 캐릭터 설정
-        GameObject activePanel = null;
-        Image activeImage = null;
-        Image inactiveImage = null;
+        // 2-2. 기준 색상 및 크기 설정
+        Color activeColor = Color.white;
+        Color inactiveColor = new Color(0.5f, 0.5f, 0.5f, 1f);
+        Vector3 activeScale = Vector3.one;
+        Vector3 inactiveScale = new Vector3(0.9f, 0.9f, 1f);
 
+        Image speakerImage = null;
+        Image companionImage = null;
+        GameObject speakerPanel = null;
+        GameObject companionPanel = null;
+        string activeSpeakerName = dialogue.speaker;
+
+        // 2-3. 패널 구분 및 참조 설정
         if (dialogue.position == "Left")
         {
-            activePanel = leftCharacterPanel;
-            activeImage = leftCharacterImage;
-            inactiveImage = rightCharacterImage;
+            speakerPanel = leftCharacterPanel;
+            speakerImage = leftCharacterImage;
+            companionPanel = rightCharacterPanel;
+            companionImage = rightCharacterImage;
         }
         else if (dialogue.position == "Right")
         {
-            activePanel = rightCharacterPanel;
-            activeImage = rightCharacterImage;
-            inactiveImage = leftCharacterImage;
+            speakerPanel = rightCharacterPanel;
+            speakerImage = rightCharacterImage;
+            companionPanel = leftCharacterPanel;
+            companionImage = leftCharacterImage;
         }
 
-        // 현재 대사하는 캐릭터 활성화 및 밝게 표시
-        if (activePanel != null)
+        // 2-4. 스피커 처리 (Active Character)
+        if (speakerImage != null && characterSprites.ContainsKey(activeSpeakerName))
         {
-            activePanel.SetActive(true);
-            activeImage.color = Color.white;
+            // 1. 스피커 이미지 설정
+            speakerImage.sprite = characterSprites[activeSpeakerName];
+            // speakerImage.SetNativeSize(); // (필요에 따라 주석 처리 유지)
 
-            if (characterSprites.ContainsKey(dialogue.speaker))
+            // 2. 스피커 강조 및 활성화
+            speakerPanel.SetActive(true);
+            speakerImage.color = activeColor;
+            speakerImage.transform.localScale = activeScale;
+        }
+        else
+        {
+            // 스피커 정보가 없거나 스프라이트 로드 오류
+            Debug.LogWarning($"Speaker sprite not found for: {activeSpeakerName} or position not set.");
+        }
+
+        // 2-5. 컴패니언 처리 (Inactive Character/Listener)
+        if (companionImage != null)
+        {
+            // [핵심 로직] 컴패니언 이미지에 스프라이트가 할당되어 있다면 (이전 대화의 캐릭터가 남아있다면) 청자로 유지합니다.
+            if (companionImage.sprite != null)
             {
-                activeImage.sprite = characterSprites[dialogue.speaker];
-                activeImage.SetNativeSize(); // 일러스트 크기를 원본 크기에 맞춤 (선택 사항)
+                // 컴패니언 활성화
+                companionPanel.SetActive(true);
+
+                // 컴패니언 약화 (어둡고 작게)
+                companionImage.color = inactiveColor;
+                companionImage.transform.localScale = inactiveScale;
             }
-            // ------------------
+            // companionImage.sprite가 null인 경우: 2-1에서 비활성화된 상태로 유지됩니다 (1인 대화)
+        }
+    }
 
-            // 반대편 캐릭터는 어둡게 -> 안나옴
-            if (inactiveImage != null)
+    private void StartCutscene(Dialogue dialogue)
+    {
+        StopAllCoroutines();
+        StartCoroutine(CutsceneFlowCoroutine(dialogue));
+    }
+
+    private IEnumerator CutsceneFlowCoroutine(Dialogue dialogue)
+    {
+        // A. 대화창 숨기기 및 기본 패널 설정
+        //dialoguePanel.SetActive(false);
+
+        dialoguePanelBackground.gameObject.SetActive(true);
+        dialogueText.gameObject.SetActive(false);
+        nameText.gameObject.SetActive(false);
+
+        leftCharacterPanel.SetActive(false);
+        rightCharacterPanel.SetActive(false);
+
+        LoadCutsceneImage(dialogue.cutsceneImage);
+
+        Color initialColor = cutsceneImage.color;
+        initialColor.a = 0f;
+        cutsceneImage.color = initialColor;
+
+        if (cutscenePanel != null) cutscenePanel.SetActive(true);
+
+        if (dialogue.fadeFromBlackOnStart && fadePanel != null)
+        {
+            // 1. 검은 화면 페이드 인 (화면을 완전히 덮음)
+            yield return StartCoroutine(FadeToBlack(dialogue.fadeInDuration));
+
+            Color color = cutsceneImage.color;
+            color.a = 1f;
+            cutsceneImage.color = color;
+
+            // 3. 검은 화면 페이드 아웃 (컷씬이 나타남)
+            yield return StartCoroutine(FadeFromBlack(dialogue.fadeOutDuration));
+
+        }
+        else
+        {
+            if (cutsceneImage != null)
             {
-                if (inactiveImage.gameObject.activeSelf)
-                {
-                    inactiveImage.color = new Color(0.5f, 0.5f, 0.5f, 1f);
-                }
+                yield return StartCoroutine(FadeImage(cutsceneImage, 0f, 1f, dialogue.fadeInDuration));
             }
         }
+
+        yield return new WaitForSeconds(dialogue.cutsceneDisplayTime);
+
+        yield return StartCoroutine(EndCutsceneCoroutine(dialogue, dialogue.nextDialogueId));
+
+    }
+
+    private void LoadCutsceneImage(string imageName)
+    {
+        Sprite cutsceneSprite = Resources.Load<Sprite>(imageName);
+
+        if (cutsceneSprite != null && cutsceneImage != null)
+        {
+            cutsceneImage.sprite = cutsceneSprite;
+            // cutsceneImage.SetNativeSize(); // 앵커 문제 방지를 위해 제거
+
+            // [수정] Load에서는 스프라이트만 설정하고, Alpha는 코루틴 내에서 제어합니다.
+            Color color = cutsceneImage.color;
+            color.a = 1f; // 스프라이트가 완전히 투명해지는 것을 막기 위해 임시로 1로 설정
+            cutsceneImage.color = color;
+        }
+        else
+        {
+            Debug.LogError($"Cutscene Image not found: {imageName}.");
+        }
+
+        //startBackgroundImage.gameObject.SetActive(false);
     }
 
     // 대화 종료
@@ -218,5 +443,262 @@ public class DialogueManager : MonoBehaviour
         }
 
         Debug.Log("대화가 종료되었습니다. Action: " + (currentDialogue != null ? currentDialogue.actionAfterDialogue : "START_GAME"));
+    }
+
+    public void OnCutsceneClicked()
+    {
+        if (cutscenePanel == null || !cutscenePanel.activeSelf) return;
+
+        StopAllCoroutines();
+        string nextId = currentDialogue.nextDialogueId;
+
+        StartCoroutine(EndCutsceneCoroutine(currentDialogue, nextId));
+    }
+
+    private IEnumerator EndCutsceneCoroutine(Dialogue dialogue, string nextId)
+    {
+        // 1. 컷씬 이미지 페이드 아웃 및 화면 전환 준비
+        if (cutsceneImage != null)
+        {
+            if (dialogue.fadeToBlackOnEnd && fadePanel != null)
+            {
+                // [수정] 검은 화면으로 페이드 인 (화면을 가리고 다음 전환 준비)
+                yield return StartCoroutine(FadeToBlack(dialogue.fadeOutDuration));
+            }
+            else
+            {
+                // [수정] 일반 컷씬: 이미지 자체를 페이드 아웃
+                yield return StartCoroutine(FadeImage(cutsceneImage, 1f, 0f, dialogue.fadeOutDuration));
+            }
+        }
+
+        // 2. 컷씬 패널 비활성화
+        if (cutscenePanel != null) cutscenePanel.SetActive(false);
+
+        // 3. 컷씬 이미지를 다이얼로그 배경으로 설정 (페이드 인 없음)
+        if (cutsceneImage.sprite != null && dialogueBackgroundImage != null)
+        {
+            dialogueBackgroundImage.sprite = cutsceneImage.sprite;
+
+            // [핵심 수정] 배경 이미지 페이드 인 제거. 투명도를 즉시 1.0으로 설정합니다.
+            Color color = dialogueBackgroundImage.color;
+            color.a = 1.0f;
+            dialogueBackgroundImage.color = color;
+
+            // 시작 배경 비활성화
+            if (startBackgroundImage != null)
+            {
+                startBackgroundImage.gameObject.SetActive(false);
+            }
+        }
+
+        // 4. 다음 대화로 이동 (기존 로직 유지)
+        if (nextId == "End")
+        {
+            EndDialogue();
+        }
+        else if (dialogueDictionary.ContainsKey(nextId))
+        {
+            Dialogue nextDialogue = dialogueDictionary[nextId];
+
+            if (nextDialogue.stage == activeStage)
+            {
+                SetDialogue(nextDialogue);
+                dialoguePanel.SetActive(true);
+            }
+            else
+            {
+                EndDialogue();
+            }
+        }
+        else
+        {
+            Debug.LogError("Cutscene Next Dialogue ID not found: " + nextId);
+            EndDialogue();
+        }
+
+        if (dialogue.fadeToBlackOnEnd && fadePanel != null)
+        {
+            // 검은 화면으로 전환이 완료되었으므로, 다음 대화가 시작될 때 검은 화면을 투명화합니다.
+            yield return StartCoroutine(FadeFromBlack(0.1f)); // 빠른 페이드 아웃
+            fadePanel.gameObject.SetActive(false);
+        }
+    }
+
+    private IEnumerator FadeImage(Image image, float startAlpha, float endAlpha, float duration)
+    {
+        float startTime = Time.time;
+        Color color = image.color;
+        color.a = startAlpha;
+        image.color = color;
+
+        // 활성화 상태가 아닐 경우 명시적으로 켜줘야 함 (FadeToBlack이 Panel을 켰으므로)
+        image.gameObject.SetActive(true);
+
+        while (Time.time < startTime + duration)
+        {
+            float t = (Time.time - startTime) / duration;
+            color.a = Mathf.Lerp(startAlpha, endAlpha, t);
+            image.color = color;
+            yield return null;
+        }
+
+        color.a = endAlpha;
+        image.color = color;
+
+        if (endAlpha == 0)
+        {
+            image.gameObject.SetActive(false);
+        }
+    }
+
+    private IEnumerator FadeToBlack(float duration)
+    {
+        if (fadePanel == null) yield break;
+
+        fadePanel.gameObject.SetActive(true);
+        fadePanel.color = new Color(0f, 0f, 0f, 0f);
+
+        yield return StartCoroutine(FadeImage(fadePanel, 0f, 1f, duration));
+    }
+
+    private IEnumerator FadeFromBlack(float duration)
+    {
+        if (fadePanel == null) yield break;
+
+        yield return StartCoroutine(FadeImage(fadePanel, 1f, 0f, duration));
+        // 패널 자체는 EndCutsceneCoroutine에서 비활성화
+    }
+
+
+    // ToonyVoices 이벤트 핸들러
+    // DialogueManager.cs 파일 내
+    public void OnCharacterSounded(int originalIndex)
+    {
+        // 1. 전달받은 인덱스가 이전 출력 인덱스와 같거나 작다면 무시합니다. 
+        //    (하나의 음절(자모 3개)이 발음되는 동안 같은 인덱스(i)가 반복되는 것을 방지)
+        if (originalIndex <= _lastDisplayedIndex)
+        {
+            return;
+        }
+
+        // 2. 새로운 글자를 출력해야 할 때만 로직을 실행합니다.
+        string currentMessage = _currentFullText;
+
+        // 이전에 덮어쓰기 방식으로 잘 작동했으므로, 텍스트 길이만 확인합니다.
+        if (originalIndex + 1 <= currentMessage.Length)
+        {
+            // 원본 텍스트의 처음부터 현재 인덱스까지의 문자열로 UI를 덮어씁니다.
+            dialogueText.text = currentMessage.Substring(0, originalIndex + 1);
+
+            // UI가 갱신되었으므로 인덱스를 업데이트합니다.
+            _lastDisplayedIndex = originalIndex;
+        }
+    }
+
+    private float GetPitchForSpeaker(string speakerName)
+    {
+        // [기본 피치]: ToonyVoices 컴포넌트에 설정된 기본 값 (예: 2.0f)
+        float defaultPitch = 2.0f;
+
+        // 피치 값 가이드: 
+        // - 값이 높을수록 (예: 2.5f ~ 3.5f) 소리가 빠르고 가늘어집니다. (어린이, 경쾌함)
+        // - 값이 낮을수록 (예: 1.0f ~ 1.8f) 소리가 느리고 굵어집니다. (성인, 중후함)
+
+        switch (speakerName)
+        {
+            case "Player":
+                return 2.4f;
+
+            case "Manager":
+                return 2.0f;
+
+            case "GirlFan":
+                return 3.5f;
+
+            case "RivalWolf":
+                return 1.8f;
+
+            case "GrayCitizen":
+                return 1.4f;
+
+            default:
+                return defaultPitch + 0.4f;
+        }
+    }
+
+    // 문장 전체 음성 재생이 끝났을 때 호출됨
+    public void OnDialogueFinished()
+    {
+        _isSpeaking = false;
+        _isSentenceFinished = true;
+
+        dialogueText.text = _currentFullText;
+
+        Debug.Log("대화 문장 끝! 다음으로 진행 가능.");
+        // ... (nextDialogueId를 기반으로 다음 대화 로드 준비) ...
+    }
+
+    public void DisplayDialogue(Dialogue dialogue) // JSON 데이터 구조를 나타내는 클래스라고 가정
+    {
+        // 1. 현재 대화 텍스트 저장 및 UI 초기화
+        _currentFullText = dialogue.text;
+        _dialogueTextUI.text = ""; // 출력 전 UI를 깨끗하게 비웁니다.
+
+        _lastDisplayedIndex = -1;
+
+        _toonyVoices.Speak(_currentFullText);
+
+        // 3. (옵션) UI 출력 속도를 빠르게 하고 싶다면:
+        // _toonyVoices.Speak(_currentFullText, 3f); // 피치를 높여 더 빠르게 말하게 함
+    }
+
+    public void SkipDialogue()
+    {
+        // 1. 현재 진행 중인 모든 코루틴 및 음성 중지
+        StopAllCoroutines();
+        if (_toonyVoices != null) _toonyVoices.Stop();
+
+        // 2. 모든 UI 패널 즉시 정리
+        dialoguePanel.SetActive(false);
+        leftCharacterPanel.SetActive(false);
+        rightCharacterPanel.SetActive(false);
+        if (cutscenePanel != null) cutscenePanel.SetActive(false);
+
+        if (fadePanel != null)
+        {
+            Color color = fadePanel.color;
+            color.a = 0.0f;
+            fadePanel.color = color;
+            fadePanel.gameObject.SetActive(false);
+        }
+
+        // 3. 흐름 제어 (방법 B: 데이터 우선 및 상태 초기화)
+        if (mainUIManager != null)
+        {
+            // 우선순위 1: 현재 대사 데이터에 특정 액션이 설정되어 있는지 확인
+            if (currentDialogue != null && !string.IsNullOrEmpty(currentDialogue.actionAfterDialogue) && currentDialogue.actionAfterDialogue != "None")
+            {
+                Debug.Log($"[Skip] 대사 액션 실행: {currentDialogue.actionAfterDialogue}");
+                mainUIManager.HandleDialogueAction(currentDialogue.actionAfterDialogue);
+            }
+            // 우선순위 2: 아웃트로 상태라면 클리어 UI 출력
+            else if (GameSettings.CurrentDialogueType == GameSettings.DialogueType.Outro)
+            {
+                Debug.Log("[Skip] 아웃트로 종료: 클리어 UI 출력");
+                mainUIManager.HandleDialogueAction("SHOW_CLEAR_UI");
+            }
+            // 우선순위 3: 그 외(인트로 등) 상황에서는 게임 시작
+            else
+            {
+                Debug.Log("[Skip] 일반 시작: START_GAME 실행");
+                mainUIManager.HandleDialogueAction("START_GAME");
+            }
+
+            // [핵심] 처리가 끝난 후 대화 타입을 None으로 초기화하여 다음 판에 영향을 주지 않도록 함
+            GameSettings.SetDialogueType(GameSettings.DialogueType.None);
+        }
+
+        Debug.Log("대화/컷씬 스킵 및 GameSettings 초기화 완료");
     }
 }

@@ -1,6 +1,5 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using System.Collections;
-using TMPro.Examples;
 
 public class PlayerController : MonoBehaviour
 {
@@ -8,13 +7,12 @@ public class PlayerController : MonoBehaviour
 
     [Header("Jump Settings")]
     public float jumpForce = 10f;
-    public int maxJumpCount = 1; //´õºí Á¡ÇÁ ºñÈ°¼ºÈ­
+    public int maxJumpCount = 1;
     private int currentJumpCount = 0;
-
     public float trampolineJumpForce = 15f;
 
     [Header("Invincibility Settings")]
-    public float invincibilityDuration = 2.0f; //ÇÇ°Ý ÈÄ ¹«Àû
+    public float invincibilityDuration = 2.0f;
     private bool isInvincible = false;
 
     [Header("Slide Settings")]
@@ -26,25 +24,32 @@ public class PlayerController : MonoBehaviour
     public float colliderHeightAdjustment = 0.5f;
 
     [Header("Note Attack Settings")]
-    public GameObject notePrefab;     // À¯´ÏÆ¼¿¡¼­ ÁöÁ¤ÇÒ À½Ç¥ ÇÁ¸®ÆÕ
+    public GameObject notePrefab;
     public float noteSpawnOffset = 0.8f;
     public float noteSpawnHeight = 0.5f;
 
     [Header("Ground Check Settings")]
-    public float groundCheckDistance = 0.1f; // ¶¥À» °¨ÁöÇÒ °Å¸® (ÀÛÀ»¼ö·Ï Á¤È®)
+    public float groundCheckDistance = 0.1f;
     public LayerMask groundLayer;
 
     [Header("Wall Check Settings")]
     public float wallCheckDistance = 0.15f;
 
-    [Header("Game State")] 
+    [Header("Game State")]
     public Transform respawnPoint;
 
     [Header("Respawn Settings")]
-    public float respawnGraceTime = 0.5f; // ¸®½ºÆù ÈÄ ½ÇÆÐ °¨Áö ¹«½Ã ½Ã°£ (0.5ÃÊ)
-    private float respawnTimer = 0f; // ¸®½ºÆù ¹«Àû Å¸ÀÌ¸Ó
+    public float respawnGraceTime = 0.5f;
+    private float respawnTimer = 0f;
 
-    private float failCheckTime = 0.2f; // ¸ØÃã °¨Áö ½Ã°£
+    [Header("Audio Settings")]
+    public AudioClip jumpSound;
+    public AudioClip slideSound;
+    public AudioClip noteAttackSound;
+    public AudioClip hitSound;
+    private AudioSource audioSource;
+
+    private float failCheckTime = 0.2f;
     private float stopTimer = 0f;
     private bool isGameOver = false;
 
@@ -63,357 +68,319 @@ public class PlayerController : MonoBehaviour
     private Vector3 originalScale;
 
     private bool isFailing = false;
-
     private float initialXPosition;
+    private ColorManager colorManager;
+
+    [Header("Animation Settings")]
+    public Animator anim;
+    public GameObject currentRigObject;
+    [Header("Death Prefab")]
+    public GameObject deathRigPrefab;
+    private float deathAnimationDuration = 1.5f;
+
+    private readonly string IsRunningParam = "IsRunning";
+    private readonly string IsJumpingParam = "IsJumping";
+    private readonly string IsSlidingParam = "IsSliding";
+    private readonly string IsHittingParam = "IsHitting";
+    private readonly string IsGuitarParam = "IsGuitar";
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         capsuleCollider = GetComponent<CapsuleCollider2D>();
+        audioSource = GetComponent<AudioSource>();
+
+        if (audioSource == null)
+            Debug.LogWarning("PlayerController requires an AudioSource component.");
+
+        if (currentRigObject == null)
+        {
+            Transform rigTransform = transform.Find("Player_Normal");
+            if (rigTransform != null) currentRigObject = rigTransform.gameObject;
+        }
+
+        if (currentRigObject != null)
+            anim = currentRigObject.GetComponent<Animator>();
+        else
+            anim = GetComponent<Animator>() ?? GetComponentInChildren<Animator>();
 
         originalScale = transform.localScale;
 
-        if(capsuleCollider != null)
+        if (capsuleCollider != null)
         {
             originalColliderSize = capsuleCollider.size;
             originalColliderOffset = capsuleCollider.offset;
-            wallCheckDistance = (capsuleCollider.size.x / 2f) + 0.05f; // 0.05f´Â ¹Ì¼¼ÇÑ ¿©À¯ °ø°£
-        }
-        else
-        {
-            Debug.LogError("PlayerController requires a CapsuleCollider2D component on the same GameObject.");
-        }
-
-        if (rb == null)
-        {
-            Debug.LogError("PlayerController requires a Rigidbody2D component on the same GameObject.");
-            enabled = false;
+            wallCheckDistance = (capsuleCollider.size.x / 2f) + 0.05f;
         }
 
         uiManager = FindFirstObjectByType<MainUIManager>();
-        if (uiManager == null)
-        {
-            Debug.LogError("MainUIManager¸¦ ¾À¿¡¼­ Ã£À» ¼ö ¾ø½À´Ï´Ù! MainScene¿¡ ¹èÄ¡Çß´ÂÁö È®ÀÎÇÏ¼¼¿ä.");
-        }
-
         playerStats = FindFirstObjectByType<PlayerStats>();
-        if (playerStats == null)
-        {
-            Debug.LogError("PlayerStats¸¦ ¾À¿¡¼­ Ã£À» ¼ö ¾ø½À´Ï´Ù!");
-            enabled = false;
-        }
+        colorManager = ColorManager.Instance;
 
-        //À§Ä¡ º¸Á¤
         Vector3 startPosition = transform.position;
         transform.position = new Vector3(startPosition.x, 0f, startPosition.z);
-
         initialXPosition = transform.position.x;
+
+        SetAnimationBool(IsRunningParam, true);
     }
 
     void Update()
     {
-        if (!isInvincible)
+        // 1. íŠœí† ë¦¬ì–¼ ì¼ì‹œì •ì§€ ì¤‘ ì²˜ë¦¬
+        if (TutorialManager.Instance != null && TutorialManager.Instance.IsPaused())
         {
-            CheckForFailure();
+            string allowed = TutorialManager.Instance.TargetAction;
+            if (allowed == "UP")
+            {
+                if (!(Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))) return;
+            }
+            else if (allowed == "DOWN")
+            {
+                if (!(Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow))) return;
+            }
+            else return;
         }
+
+        if (!isInvincible) CheckForFailure();
 
         CheckIfGrounded();
 
+        // 2. í•´ê¸ˆ ìƒíƒœ ì²´í¬ê°€ í¬í•¨ëœ ìž…ë ¥ ì²˜ë¦¬
         HandleSlide();
         HandleJump();
         HandleNoteShoot();
 
+        UpdateAnimationState();
+
         if (!isGameOver)
         {
-            transform.position = new Vector3(
-            initialXPosition,
-            transform.position.y,
-            transform.position.z
-            );
-
+            transform.position = new Vector3(initialXPosition, transform.position.y, transform.position.z);
             rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
         }
         else
         {
-            // °ÔÀÓ ¿À¹ö ½Ã ¿ÏÀüÈ÷ ¸ØÃã
             rb.linearVelocity = Vector2.zero;
         }
     }
 
     void CheckIfGrounded()
     {
-        Vector2 raycastOrigin = capsuleCollider.bounds.center;
-
-        raycastOrigin.y = capsuleCollider.bounds.min.y;
-
+        Vector2 raycastOrigin = new Vector2(capsuleCollider.bounds.center.x, capsuleCollider.bounds.min.y);
         RaycastHit2D hit = Physics2D.Raycast(raycastOrigin, Vector2.down, groundCheckDistance, groundLayer);
-
-        Debug.DrawRay(raycastOrigin, Vector2.down * groundCheckDistance, hit.collider != null ? Color.green : Color.red);
 
         if (hit.collider != null)
         {
-            if (!isGrounded)
-            {
-                currentJumpCount = 0;
-            }
+            if (!isGrounded) currentJumpCount = 0;
             isGrounded = true;
         }
         else
-        {
             isGrounded = false;
-        }
     }
 
     void CheckForFailure()
     {
-        if (respawnTimer > 0f) return;
-
-        if (playerStats == null || isGameOver || isFailing) return;
+        if (respawnTimer > 0f || playerStats == null || isGameOver || isFailing) return;
 
         Vector2 wallRaycastOrigin = capsuleCollider.bounds.center;
-
         RaycastHit2D wallHit = Physics2D.Raycast(wallRaycastOrigin, Vector2.right, wallCheckDistance, groundLayer);
 
-        // µð¹ö±×¿ë ¶óÀÎ
-        Debug.DrawRay(wallRaycastOrigin, Vector2.right * wallCheckDistance, wallHit.collider != null ? Color.blue : Color.yellow);
-
-        bool isStuck = isGrounded && wallHit.collider != null;
-
-        if (isStuck) // (¼Óµµ Á¶°Ç Á¦°Å ¹öÀü »ç¿ë)
+        if (isGrounded && wallHit.collider != null)
         {
             stopTimer += Time.deltaTime;
-
-            if (stopTimer >= failCheckTime) // failCheckTime = 0.2f
+            if (stopTimer >= failCheckTime)
             {
                 isFailing = true;
                 ProcessFailure();
                 stopTimer = 0f;
             }
         }
-        else
-        {
-            stopTimer = 0f;
-        }
+        else stopTimer = 0f;
     }
 
-    // ProcessFailure() ÇÔ¼ö¸¦ ¹«Àû ·ÎÁ÷¿¡ ¸ÂÃç ¼öÁ¤
     void ProcessFailure()
     {
-        // ÀÌ¹Ì ¹«Àû »óÅÂÀÌ¸é ÇÇ°Ý ¹«½Ã
         if (isInvincible) return;
 
+        SetAnimationTrigger(IsHittingParam);
+        PlaySound(hitSound);
+        if (colorManager != null) colorManager.DecreaseGaugeOnHit();
+
         playerStats.HP--;
-        Debug.Log($"ÇÃ·¹ÀÌ¾î ÇÇ°Ý! ³²Àº HP: {playerStats.HP}");
+        if (playerStats.HP <= 0) StartCoroutine(HandleDeathSequence());
+        else StartCoroutine(InvincibilityCoroutine());
 
-        if (playerStats.HP <= 0)
-        {
-            isGameOver = true;
-            currentMoveSpeed = 0f;
-            enabled = false;
-            // UI Manager Game Over È£Ãâ
-            if (uiManager != null) uiManager.ShowGameOver();
-        }
-        else
-        {
-            // HP°¡ ³²¾Ò´Ù¸é ¹«Àû »óÅÂ·Î ÀüÈ¯
-            StartCoroutine(InvincibilityCoroutine());
-        }
+        isFailing = false;
     }
 
-    // ProcessFailureFromCitizenCollision() ÇÔ¼ö¸¦ ProcessFailure()·Î ¿¬°á
-    public void ProcessFailureFromCitizenCollision()
-    {
-        // ½Ã¹Î Ãæµ¹Àº º®¿¡ ¹Ú´Â °Í°ú µ¿ÀÏÇÏ°Ô Ã³¸®ÇÏµÇ, isInvincibleÀ» È®ÀÎÇØ¾ß ÇÕ´Ï´Ù.
-        if (isInvincible || isGameOver) return;
+    // ì™¸ë¶€ ìŠ¤í¬ë¦½íŠ¸(CitizenController, Obstacles) í˜¸ì¶œìš© í•¨ìˆ˜ë“¤
+    public void ProcessFailureFromCitizenCollision() { if (!isInvincible && !isGameOver) ProcessFailure(); }
+    public void ProcessFailureFromObstacle() { if (!isInvincible && !isGameOver) ProcessFailure(); }
 
-        ProcessFailure();
-
-        Debug.Log("½Ã¹Î°ú Ãæµ¹·Î ÀÎÇÑ ÇÇ°Ý Ã³¸® ¿Ï·á.");
-    }
-
-    // ProcessFailureFromObstacle() ÇÔ¼ö (ÀÏ¹Ý Àå¾Ö¹°)¸¦ ProcessFailure()·Î ¿¬°á
-    public void ProcessFailureFromObstacle()
-    {
-        // ÀÏ¹Ý Àå¾Ö¹° Ãæµ¹ Ã³¸®
-        if (isInvincible || isGameOver) return;
-
-        ProcessFailure();
-
-        Debug.Log("Àå¾Ö¹°°ú Ãæµ¹·Î ÀÎÇÑ ÇÇ°Ý Ã³¸® ¿Ï·á.");
-    }
-
-    // ¹«Àû »óÅÂ ÄÚ·çÆ¾
     IEnumerator InvincibilityCoroutine()
     {
         isInvincible = true;
-        Debug.Log("¹«Àû »óÅÂ ½ÃÀÛ!");
-
-        SpriteRenderer sr = GetComponent<SpriteRenderer>();
-        //Collider2D col = GetComponent<Collider2D>(); // ÀÏ¹Ý ÄÝ¶óÀÌ´õ (º® Ãæµ¹¿ë)
-
-        // ±ôºýÀÓ È¿°ú (¼±ÅÃ »çÇ×)
-        if (sr != null)
+        SpriteRenderer[] renderers = GetComponentsInChildren<SpriteRenderer>();
+        float elapsed = 0f;
+        while (elapsed < invincibilityDuration)
         {
-            for (float t = 0; t < invincibilityDuration; t += 0.15f) // 0.15ÃÊ °£°ÝÀ¸·Î ±ôºýÀÓ
+            foreach (var sr in renderers)
             {
-                sr.enabled = !sr.enabled;
-                yield return new WaitForSeconds(0.075f);
+                if (sr == null) continue;
+                Color c = sr.color;
+                c.a = 0.6f;
+                sr.color = c;
             }
-            sr.enabled = true; // ¹«Àû Á¾·á ÈÄ ´Ù½Ã º¸ÀÌ°Ô ¼³Á¤
+            yield return new WaitForSeconds(0.1f);
+
+            foreach (var sr in renderers)
+            {
+                if (sr == null) continue;
+                Color c = sr.color;
+                c.a = 1.0f;
+                sr.color = c;
+            }
+            yield return new WaitForSeconds(0.1f);
+            elapsed += 0.2f;
+        }
+
+        foreach (var sr in renderers)
+        {
+            if (sr == null) continue;
+            Color c = sr.color;
+            c.a = 1.0f;
+            sr.color = c;
         }
 
         isInvincible = false;
-        Debug.Log("¹«Àû »óÅÂ Á¾·á");
-
         currentJumpCount = 0;
     }
 
-
     void HandleJump()
     {
+        // íŠœí† ë¦¬ì–¼ í•´ê¸ˆ ìƒíƒœ í™•ì¸
+        if (TutorialManager.Instance != null && !TutorialManager.Instance.canJump) return;
+
         bool jumpInput = Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow);
-
-        if (!isSliding && jumpInput)
+        if (!isSliding && jumpInput && isGrounded && currentJumpCount == 0)
         {
-            // ¼öÁ¤: isGrounded ÀÏ ¶§¸¸ Á¡ÇÁ¸¦ Çã¿ë
-            if (isGrounded && currentJumpCount == 0)
-            {
-                // ¼öÁ÷ ¼Óµµ ¸®¼Â ÈÄ Á¡ÇÁ
-                rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
-                rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
-
-                currentJumpCount = 1; // Á¡ÇÁ È½¼ö 1·Î ¼³Á¤ (°øÁß¿¡ ÀÖÀ½À» Ç¥½Ã)
-                isGrounded = false;
-
-                Debug.Log("ÀÏ¹Ý Á¡ÇÁ ½ÇÇà.");
-            }
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
+            currentJumpCount = 1;
+            PlaySound(jumpSound);
         }
     }
 
     public void PerformAirJumpOnContact()
     {
-        if (!isGrounded)
-        {
-            // 1. ¼öÁ÷ ¼Óµµ ¸®¼Â
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
-
-            // 2. Á¡ÇÁ ½ÇÇà (Á¡ÇÁ ±ËÀûÀ» °»½Å)
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
-
-            Debug.Log("Jump Orb Jump ½ÇÇà!");
-        }
+        // JumpOrb ë“±ì—ì„œ í˜¸ì¶œ ì‹œ ì í”„ ì‹¤í–‰
+        rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
+        currentJumpCount = 1;
+        PlaySound(jumpSound);
     }
 
     void HandleSlide()
     {
+        // íŠœí† ë¦¬ì–¼ í•´ê¸ˆ ìƒíƒœ í™•ì¸
+        if (TutorialManager.Instance != null && !TutorialManager.Instance.canSlide) return;
+
         if ((Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow)) && isGrounded && !isSliding)
         {
             StartSlide();
         }
-
-        if (isSliding)
+        if (isSliding && (Input.GetKeyUp(KeyCode.S) || Input.GetKeyUp(KeyCode.DownArrow)))
         {
-            slideTimer -= Time.deltaTime;
-
-            if (slideTimer <= 0 || (Input.GetKeyUp(KeyCode.S) || Input.GetKeyUp(KeyCode.DownArrow)))
-            {
-                EndSlide();
-            }
+            EndSlide();
         }
     }
 
     void StartSlide()
     {
         isSliding = true;
-        slideTimer = slideDuration;
-
-        //currentMoveSpeed = moveSpeed * slideSpeedMultiplier;
-
-        transform.localScale = originalScale * slideHeightScale;
-
+        PlaySound(slideSound);
         if (capsuleCollider != null)
         {
             float newHeight = originalColliderSize.y * slideHeightScale;
-            float newWidth = originalColliderSize.x * slideHeightScale;
-
-            float heightDifference = originalColliderSize.y - newHeight;
-            float yOffsetAdjustment = heightDifference / 2f;
-
-            capsuleCollider.size = new Vector2(newWidth, newHeight);
-
+            float yOffsetAdjustment = (originalColliderSize.y - newHeight) / 2f;
+            capsuleCollider.size = new Vector2(originalColliderSize.x, newHeight);
             capsuleCollider.offset = new Vector2(originalColliderOffset.x, originalColliderOffset.y - yOffsetAdjustment);
-
-
-            if (rb != null)
-            {
-                rb.WakeUp();
-            }
+            rb.WakeUp();
         }
     }
 
     void EndSlide()
     {
         isSliding = false;
-
-        //currentMoveSpeed = moveSpeed;
-
-        transform.localScale = originalScale;
-
         if (capsuleCollider != null)
         {
             capsuleCollider.size = originalColliderSize;
             capsuleCollider.offset = originalColliderOffset;
-
-            if (rb != null)
-            {
-                rb.WakeUp();
-            }
+            rb.WakeUp();
         }
     }
 
     void HandleNoteShoot()
     {
+        if (!isGrounded || isSliding) return;
+
         if (Input.GetKeyDown(KeyCode.D))
         {
-            if (notePrefab == null)
-            {
-                Debug.LogError("Note PrefabÀÌ ¼³Á¤µÇÁö ¾Ê¾Ò½À´Ï´Ù!");
-                return;
-            }
+            if (notePrefab == null) return;
 
-            // ÇÃ·¹ÀÌ¾î ¿À¸¥ÂÊ (¾Õ)¿¡ À½Ç¥ »ý¼º
+            SetAnimationTrigger(IsGuitarParam);
+            PlaySound(noteAttackSound);
+
             Vector3 spawnPosition = transform.position
-                      + Vector3.right * noteSpawnOffset
-                      + Vector3.up * noteSpawnHeight;
+                                  + Vector3.right * noteSpawnOffset
+                                  + Vector3.up * noteSpawnHeight;
 
-            // À½Ç¥ ÀÎ½ºÅÏ½ºÈ­
             GameObject note = Instantiate(notePrefab, spawnPosition, Quaternion.identity);
-
-            // NoteProjectile ½ºÅ©¸³Æ®¿¡ ¹ß»ç ½ÅÈ£ Àü´Þ
             NoteProjectile noteProjectile = note.GetComponent<NoteProjectile>();
             if (noteProjectile != null)
-            {
-                const float attackProjectileSpeed = 10.0f;
-                noteProjectile.Launch(attackProjectileSpeed);
-            }
-
-            Debug.Log("À½Ç¥ ¹ß»ç!");
+                noteProjectile.Launch(10.0f);
         }
     }
+
+    void UpdateAnimationState()
+    {
+        if (anim == null || isGameOver) return;
+        bool inAir = !isGrounded && !isSliding;
+        SetAnimationBool(IsJumpingParam, inAir);
+        SetAnimationBool(IsSlidingParam, isSliding);
+        if (!isSliding && !inAir) SetAnimationBool(IsRunningParam, !isGameOver);
+    }
+
+    void SetAnimationBool(string paramName, bool value) { if (anim != null) anim.SetBool(paramName, value); }
+    void SetAnimationTrigger(string paramName) { if (anim != null) anim.SetTrigger(paramName); }
+
+    void HandleDeathModelChange()
+    {
+        if (currentRigObject != null) currentRigObject.SetActive(false);
+        if (deathRigPrefab != null)
+        {
+            GameObject deathModel = Instantiate(deathRigPrefab, transform.position, transform.rotation, transform);
+            deathModel.SetActive(true);
+        }
+    }
+
+    IEnumerator HandleDeathSequence()
+    {
+        isGameOver = true;
+        enabled = false;
+        rb.linearVelocity = Vector2.zero;
+        if (uiManager != null && uiManager.noteManager != null) uiManager.noteManager.StopGame();
+        HandleDeathModelChange();
+        yield return new WaitForSeconds(deathAnimationDuration);
+        if (uiManager != null) uiManager.ShowGameOver();
+    }
+
     void OnCollisionEnter2D(Collision2D collision)
     {
-/*        if (collision.gameObject.CompareTag("Note_Obstacle"))
+        if (((1 << collision.gameObject.layer) & groundLayer) != 0 || collision.gameObject.CompareTag("Ground"))
         {
-            ProcessFailureFromObstacle();
-            // Ãæµ¹ÇÑ Àå¾Ö¹° Á¦°Å (¿É¼Ç)
-            Destroy(collision.gameObject);
-        }*/
-
-        if (collision.gameObject.CompareTag("Ground"))
-        {
-            if (!isGameOver)
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
+            if (!isGrounded)
             {
-                rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+                currentJumpCount = 0;
+                isGrounded = true;
             }
         }
     }
@@ -423,28 +390,18 @@ public class PlayerController : MonoBehaviour
         if (other.gameObject.CompareTag("Note_Obstacle"))
         {
             ProcessFailureFromObstacle();
-
-            // ÇÇ°Ý ÈÄ ³ëµå Á¦°Å (Ç®¸µ¿¡ ¹ÝÈ¯)
-            other.gameObject.SetActive(false);
             Destroy(other.gameObject);
-            return;
         }
-
-        if (other.gameObject.CompareTag("EndFlag"))
+        else if (other.gameObject.CompareTag("Note_Obstacle_Persistent")) ProcessFailureFromObstacle();
+        else if (other.gameObject.CompareTag("EndFlag"))
         {
-            Debug.Log("Trigger with EndFlag");
-            currentMoveSpeed = 0f;
-
-            if (uiManager != null)
-            {
-                uiManager.ShowGameClear();
-            }
-
+            if (uiManager != null) uiManager.ShowGameClear();
             enabled = false;
         }
     }
 
-    void OnCollisionExit2D(Collision2D collision)
+    void PlaySound(AudioClip clip)
     {
+        if (audioSource != null && clip != null) audioSource.PlayOneShot(clip);
     }
 }

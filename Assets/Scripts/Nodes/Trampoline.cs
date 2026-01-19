@@ -7,6 +7,13 @@ public class Trampoline : MonoBehaviour
 
     public LayerMask targetLayer;
 
+    private AudioSource audioSource;
+
+    void Awake()
+    {
+        audioSource = GetComponent<AudioSource>();
+    }
+
     void OnTriggerEnter2D(Collider2D other)
     {
         Rigidbody2D playerRb = other.GetComponent<Rigidbody2D>();
@@ -17,7 +24,13 @@ public class Trampoline : MonoBehaviour
 
             playerRb.AddForce(Vector2.up * bounceForce, ForceMode2D.Impulse);
 
-            Debug.Log("트램펄린 작동!");
+            //Debug.Log("트램펄린 작동!");
+
+            if (audioSource != null)
+            {
+                audioSource.Play();
+                //Debug.Log("트램펄린 소리 재생!");
+            }
         }
     }
 

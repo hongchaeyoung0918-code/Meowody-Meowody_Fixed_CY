@@ -1,20 +1,20 @@
 [
   {
     "stage": 1,
-    "albumIllustration": "sunrise_cover",
-    "songTitle": "Morning Light",
-    "artist": "Aurora Sky"
+    "albumIllustration": "Album1",
+    "songTitle": "Cotton Candy",
+    "artist": "viyn"
   },
   {
     "stage": 2,
-    "albumIllustration": "neon_city_cover",
-    "songTitle": "Neon Pulse",
+    "albumIllustration": "Album2",
+    "songTitle": "Jazz House",
     "artist": "DJ Vortex"
   },
   {
     "stage": 3,
-    "albumIllustration": "dreamscape_art",
-    "songTitle": "Dreamscape",
+    "albumIllustration": "Album3",
+    "songTitle": "Running Night",
     "artist": "Luna Waves"
   },
   {

@@ -30,8 +30,8 @@ Transform:
   m_GameObject: {fileID: 3932686603295175997}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 54.35, y: -1.94, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0.8, y: 0.8, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -79,7 +79,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 8
   m_Sprite: {fileID: -9095717837082945937, guid: 207ee8102dd4143d288186ef0be518ee, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -167,9 +167,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 33dc6a09ce3091b48ac45a347b16c2f5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  citizenTypeIndex: 0
   isHappy: 0
-  happySprite: {fileID: 21300000, guid: 466b9ba2a0abb6d4f9759e7ae4e921ea, type: 3}
-  sadSprite: {fileID: 21300000, guid: 377aca3ac69f98c4da17cb14e2de2da7, type: 3}
+  happySprites:
+  - {fileID: 21300000, guid: 3bccfe3e17c2629419ac802570cdaad4, type: 3}
+  - {fileID: 21300000, guid: 7e283b5d6a8d4e4438923f4574a49d1e, type: 3}
+  - {fileID: 21300000, guid: d4e04817e134c5f4da72d78372f27c38, type: 3}
+  sadSprites:
+  - {fileID: 21300000, guid: e383467bd2162af4395d4d5e4c262f71, type: 3}
+  - {fileID: 21300000, guid: f2415d44b428f9a43b90e2dd193baf1c, type: 3}
+  - {fileID: 21300000, guid: d7eeadbceed067241865e485a5d99060, type: 3}
 --- !u!114 &-273645286454254234
 MonoBehaviour:
   m_ObjectHideFlags: 0

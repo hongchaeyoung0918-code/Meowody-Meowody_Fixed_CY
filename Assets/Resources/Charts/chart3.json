@@ -1,0 +1,763 @@
+{
+    "musicTitle": "New Song",
+    "musicArtist": "Unknown Artist",
+    "notes": [
+      {
+            "time": 0.46931973099708559,
+            "type": "NormalJump2",
+            "laneIndex": 0
+        },
+        {
+            "time": 1.6426531076431275,
+            "type": "NormalJump2",
+            "laneIndex": 0
+        },
+        {
+            "time": 1.9413151741027833,
+            "type": "NormalJump2",
+            "laneIndex": 0
+        },
+        {
+            "time": 2.197324275970459,
+            "type": "NormalJump2",
+            "laneIndex": 0
+        },
+        {
+            "time": 2.4746484756469728,
+            "type": "NormalJump2",
+            "laneIndex": 0
+        },
+        {
+            "time": 3,
+            "type": "Attack",
+            "laneIndex": 0
+        },
+        {
+            "time": 3.5,
+            "type": "Attack",
+            "laneIndex": 0
+        },
+        {
+            "time": 4,
+            "type": "Attack",
+            "laneIndex": 0
+        },
+        {
+            "time": 4.493310737609863,
+            "type": "SmallThorn",
+            "laneIndex": 0
+        },
+        {
+            "time": 5.1,
+            "type": "Trampoline",
+            "laneIndex": 1
+        },
+        {
+            "time": 5.5,
+            "type": "NormalJump2",
+            "laneIndex": 3
+        },
+        {
+            "time": 5.775986614227295,
+            "type": "NormalJump2",
+            "laneIndex": 2
+        },
+        {
+            "time": 6.070657730102539,
+            "type": "NormalJump2",
+            "laneIndex": 1
+        },
+        {
+            "time": 6.4,
+            "type": "Trampoline",
+            "laneIndex": 0
+        },
+        {
+            "time": 7.6,
+            "type": "Attack",
+            "laneIndex": 0
+        },
+        {
+            "time": 8,
+            "type": "Attack",
+            "laneIndex": 0
+        },
+        {
+            "time": 8.481315612792969,
+            "type": "SmallThorn",
+            "laneIndex": 0
+        },
+        {
+            "time": 9.3,
+            "type": "Trampoline",
+            "laneIndex": 1
+        },
+        {
+            "time": 9.746644401550293,
+            "type": "NormalJump2",
+            "laneIndex": 3
+        },
+        {
+            "time": 10,
+            "type": "NormalJump2",
+            "laneIndex": 2
+        },
+        {
+            "time": 10.3,
+            "type": "NormalJump2",
+            "laneIndex": 1
+        },
+        {
+            "time": 10.599976921081543,
+            "type": "NormalJump2",
+            "laneIndex": 0
+        },
+        {
+            "time": 11.5,
+            "type": "Attack",
+            "laneIndex": 0
+        },
+        {
+            "time": 11.8,
+            "type": "Attack",
+            "laneIndex": 0
+        },
+        {
+            "time": 12.2,
+            "type": "Attack",
+            "laneIndex": 0
+        },
+        {
+            "time": 12.6,
+            "type": "Attack",
+            "laneIndex": 0
+        },
+        {
+            "time": 12.961315155029297,
+            "type": "SmallThorn",
+            "laneIndex": 0
+        },
+        {
+            "time": 13.6,
+            "type": "Trampoline",
+            "laneIndex": 1
+        },
+        {
+            "time": 14.084648323059082,
+            "type": "NormalJump2",
+            "laneIndex": 3
+        },
+        {
+            "time": 14.38,
+            "type": "NormalJump2",
+            "laneIndex": 2
+        },
+        {
+            "time": 14.65,
+            "type": "NormalJump2",
+            "laneIndex": 1
+        },
+        {
+            "time": 14.951995277404786,
+            "type": "Trampoline",
+            "laneIndex": 0
+        },
+        {
+            "time": 16.3,
+            "type": "Attack",
+            "laneIndex": 0
+        },
+        {
+            "time": 16.7,
+            "type": "Attack",
+            "laneIndex": 0
+        },
+        {
+            "time": 17.20664405822754,
+            "type": "SmallThorn",
+            "laneIndex": 0
+        },
+        {
+            "time": 18.2,
+            "type": "Trampoline",
+            "laneIndex": 1
+        },
+        {
+            "time": 18.57199478149414,
+            "type": "NormalJump2",
+            "laneIndex": 3
+        },
+        {
+            "time": 18.849319458007814,
+            "type": "NormalJump2",
+            "laneIndex": 2
+        },
+        {
+            "time": 19.0839900970459,
+            "type": "NormalJump2",
+            "laneIndex": 1
+        },
+        {
+            "time": 19.36131477355957,
+            "type": "NormalJump2",
+            "laneIndex": 0
+        },
+
+        {
+            "time": 19.93732452392578,
+            "type": "SmallThorn",
+            "laneIndex": 0
+        },
+        {
+            "time": 20.98265266418457,
+            "type": "Slide",
+            "laneIndex": 0
+        },
+
+        {
+            "time": 21.67997703552246,
+            "type": "SmallThorn",
+            "laneIndex": 0
+        },
+        {
+            "time": 22.68798179626465,
+            "type": "Trampoline",
+            "laneIndex": 1
+        },
+        {
+            "time": 23.08798179626465,
+            "type": "NormalJump2",
+            "laneIndex": 3
+        },
+        {
+            "time": 23.34399185180664,
+            "type": "NormalJump2",
+            "laneIndex": 2
+        },
+        {
+            "time": 23.6,
+            "type": "NormalJump2",
+            "laneIndex": 1
+        },
+        {
+            "time": 23.919976806640626,
+            "type": "NormalJump2",
+            "laneIndex": 0
+        },
+
+        {
+            "time": 24.35331153869629,
+            "type": "SmallThorn",
+            "laneIndex": 0
+        },
+        {
+            "time": 25.270658493041993,
+            "type": "Slide",
+            "laneIndex": 0
+        },
+
+        {
+            "time": 26.018662643432618,
+            "type": "SmallThorn",
+            "laneIndex": 0
+        },
+        {
+            "time": 27.018662643432618,
+            "type": "Trampoline",
+            "laneIndex": 1
+        },
+        {
+            "time": 27.318662643432618,
+            "type": "NormalJump2",
+            "laneIndex": 3
+        },
+        {
+            "time": 27.59598731994629,
+            "type": "NormalJump2",
+            "laneIndex": 2
+        },
+        {
+            "time": 27.930657958984376,
+            "type": "NormalJump2",
+            "laneIndex": 1
+        },
+        {
+            "time": 28.107982635498048,
+            "type": "NormalJump2",
+            "laneIndex": 0
+        },
+
+        {
+            "time": 28.619977951049806,
+            "type": "SmallThorn",
+            "laneIndex": 0
+        },
+        {
+            "time": 29.686643600463868,
+            "type": "Slide",
+            "laneIndex": 0
+        },
+
+        {
+            "time": 30.2199764251709,
+            "type": "SmallThorn",
+            "laneIndex": 0
+        },
+        {
+            "time": 31.3,
+            "type": "Trampoline",
+            "laneIndex": 1
+        },
+        {
+            "time": 31.60664367675781,
+            "type": "NormalJump2",
+            "laneIndex": 3
+        },
+        {
+            "time": 31.86265182495117,
+            "type": "NormalJump2",
+            "laneIndex": 2
+        },
+        {
+            "time": 32.1186637878418,
+            "type": "NormalJump2",
+            "laneIndex": 1
+        },
+        {
+            "time": 32.438663482666019,
+            "type": "NormalJump2",
+            "laneIndex": 0
+        },
+
+        {
+            "time": 34.542652893066409,
+            "type": "NormalJump2",
+            "laneIndex": 1
+        },
+        {
+            "time": 34.842652893066409,
+            "type": "NormalJump2",
+            "laneIndex": 1
+        },
+        {
+            "time": 35.3,
+            "type": "DoubleJump",
+            "laneIndex": 2
+        },
+        {
+            "time": 35.88798294067383,
+            "type": "WideThorn",
+            "laneIndex": 0
+        },
+        {
+            "time": 35.88798294067383,
+            "type": "DoubleJump",
+            "laneIndex": 2
+        },
+        {
+            "time": 36.4426513671875,
+            "type": "WideThorn",
+            "laneIndex": 0
+        },
+        {
+            "time": 36.4426513671875,
+            "type": "DoubleJump",
+            "laneIndex": 2
+        },
+        {
+            "time": 36.99732360839844,
+            "type": "DoubleJump",
+            "laneIndex": 0
+        },
+        {
+            "time": 38.085328674316409,
+            "type": "Trampoline",
+            "laneIndex": 0
+        },
+
+        {
+            "time": 38.51598587036133,
+            "type": "NormalJump2",
+            "laneIndex": 1
+        },
+        {
+            "time": 38.81598587036133,
+            "type": "NormalJump2",
+            "laneIndex": 1
+        },
+        {
+            "time": 39.11598587036133,
+            "type": "DoubleJump",
+            "laneIndex": 2
+        },
+        {
+            "time": 39.5853271484375,
+            "type": "WideThorn",
+            "laneIndex": 0
+        },
+        {
+            "time": 39.5853271484375,
+            "type": "DoubleJump",
+            "laneIndex": 2
+        },
+        {
+            "time": 40.1186637878418,
+            "type": "WideThorn",
+            "laneIndex": 0
+        },
+        {
+            "time": 40.1186637878418,
+            "type": "DoubleJump",
+            "laneIndex": 2
+        },
+        {
+            "time": 40.69464874267578,
+            "type": "DoubleJump",
+            "laneIndex": 2
+        },
+        {
+            "time": 40.69464874267578,
+            "type": "WideThorn",
+            "laneIndex": 0
+        },
+
+        {
+            "time": 42.294647216796878,
+            "type": "Trampoline",
+            "laneIndex": 0
+        },
+
+        {
+            "time": 42.90399169921875,
+            "type": "NormalJump2",
+            "laneIndex": 1
+        },
+        {
+            "time": 43.20399169921875,
+            "type": "NormalJump2",
+            "laneIndex": 1
+        },
+        {
+            "time": 43.40399169921875,
+            "type": "DoubleJump",
+            "laneIndex": 2
+        },
+        {
+            "time": 43.979976654052737,
+            "type": "WideThorn",
+            "laneIndex": 0
+        },
+        {
+            "time": 43.979976654052737,
+            "type": "DoubleJump",
+            "laneIndex": 2
+        },
+        {
+            "time": 44.513309478759769,
+            "type": "WideThorn",
+            "laneIndex": 0
+        },
+        {
+            "time": 44.513309478759769,
+            "type": "DoubleJump",
+            "laneIndex": 2
+        },
+        {
+            "time": 45.0679817199707,
+            "type": "DoubleJump",
+            "laneIndex": 2
+        },
+        {
+            "time": 45.601314544677737,
+            "type": "DoubleJump",
+            "laneIndex": 0
+        },
+        {
+            "time": 46.71065902709961,
+            "type": "Trampoline",
+            "laneIndex": 0
+        },
+
+        {
+            "time": 47.2,
+            "type": "NormalJump2",
+            "laneIndex": 1
+        },
+        {
+            "time": 47.5,
+            "type": "NormalJump2",
+            "laneIndex": 1
+        },
+        {
+            "time": 47.79866027832031,
+            "type": "DoubleJump",
+            "laneIndex": 2
+        },
+        {
+            "time": 48.33199691772461,
+            "type": "WideThorn",
+            "laneIndex": 0
+        },
+        {
+            "time": 48.33199691772461,
+            "type": "DoubleJump",
+            "laneIndex": 2
+        },
+        {
+            "time": 48.86532974243164,
+            "type": "WideThorn",
+            "laneIndex": 0
+        },
+        {
+            "time": 48.86532974243164,
+            "type": "DoubleJump",
+            "laneIndex": 2
+        },
+        {
+            "time": 49.441314697265628,
+            "type": "DoubleJump",
+            "laneIndex": 2
+        },
+        {
+            "time": 49.953311920166019,
+            "type": "DoubleJump",
+            "laneIndex": 2
+        },
+        {
+            "time": 49.953311920166019,
+            "type": "WideThorn",
+            "laneIndex": 0
+        },
+        {
+            "time": 51.062652587890628,
+            "type": "Trampoline",
+            "laneIndex": 0
+        },
+
+        {
+            "time": 51.550657653808597,
+            "type": "NormalJump2",
+            "laneIndex": 1
+        },
+        {
+            "time": 51.850657653808597,
+            "type": "NormalJump2",
+            "laneIndex": 1
+        },
+        {
+            "time": 52.150657653808597,
+            "type": "DoubleJump",
+            "laneIndex": 2
+        },
+        {
+            "time": 52.70532989501953,
+            "type": "WideThorn",
+            "laneIndex": 0
+        },
+        {
+            "time": 52.70532989501953,
+            "type": "DoubleJump",
+            "laneIndex": 2
+        },
+        {
+            "time": 53.25997543334961,
+            "type": "WideThorn",
+            "laneIndex": 0
+        },
+        {
+            "time": 53.25997543334961,
+            "type": "DoubleJump",
+            "laneIndex": 2
+        },
+        {
+            "time": 53.771995544433597,
+            "type": "DoubleJump",
+            "laneIndex": 2
+        },
+        {
+            "time": 54.32664489746094,
+            "type": "DoubleJump",
+            "laneIndex": 0
+        },
+        {
+            "time": 55.37199401855469,
+            "type": "Trampoline",
+            "laneIndex": 0
+        },
+
+        {
+            "time": 55.8,
+            "type": "NormalJump2",
+            "laneIndex": 1
+        },
+        {
+            "time": 56.1,
+            "type": "NormalJump2",
+            "laneIndex": 1
+        },
+        {
+            "time": 56.523990631103519,
+            "type": "DoubleJump",
+            "laneIndex": 2
+        },
+        {
+            "time": 57.07866287231445,
+            "type": "WideThorn",
+            "laneIndex": 0
+        },
+        {
+            "time": 57.07866287231445,
+            "type": "DoubleJump",
+            "laneIndex": 2
+        },
+        {
+            "time": 57.6333122253418,
+            "type": "WideThorn",
+            "laneIndex": 0
+        },
+        {
+            "time": 57.6333122253418,
+            "type": "DoubleJump",
+            "laneIndex": 2
+        },
+        {
+            "time": 58.18798065185547,
+            "type": "DoubleJump",
+            "laneIndex": 2
+        },
+        {
+            "time": 58.18798065185547,
+            "type": "WideThorn",
+            "laneIndex": 0
+        },
+        {
+            "time": 58.742652893066409,
+            "type": "DoubleJump",
+            "laneIndex": 2
+        },
+        
+        {
+            "time": 59.830657958984378,
+            "type": "Trampoline",
+            "laneIndex": 1
+        },
+
+        {
+            "time": 60.3,
+            "type": "NormalJump2",
+            "laneIndex": 1
+        },
+        {
+            "time": 60.6,
+            "type": "NormalJump2",
+            "laneIndex": 1
+        },
+        {
+            "time": 60.85464859008789,
+            "type": "DoubleJump",
+            "laneIndex": 2
+        },
+        {
+            "time": 61.47331237792969,
+            "type": "WideThorn",
+            "laneIndex": 0
+        },
+        {
+            "time": 61.47331237792969,
+            "type": "DoubleJump",
+            "laneIndex": 2
+        },
+        {
+            "time": 62.00664520263672,
+            "type": "WideThorn",
+            "laneIndex": 0
+        },
+        {
+            "time": 62.00664520263672,
+            "type": "DoubleJump",
+            "laneIndex": 2
+        },
+        {
+            "time": 62.56131362915039,
+            "type": "DoubleJump",
+            "laneIndex": 2
+        },
+        {
+            "time": 63.09465026855469,
+            "type": "DoubleJump",
+            "laneIndex": 0
+        },
+        {
+            "time": 64.26798248291016,
+            "type": "Trampoline",
+            "laneIndex": 0
+        },
+
+        {
+            "time": 64.7919921875,
+            "type": "NormalJump2",
+            "laneIndex": 1
+        },
+        {
+            "time": 65.0919921875,
+            "type": "NormalJump2",
+            "laneIndex": 1
+        },
+        {
+            "time": 65.2919921875,
+            "type": "DoubleJump",
+            "laneIndex": 2
+        },
+        {
+            "time": 65.84664154052735,
+            "type": "WideThorn",
+            "laneIndex": 0
+        },
+        {
+            "time": 65.84664154052735,
+            "type": "DoubleJump",
+            "laneIndex": 2
+        },
+        {
+            "time": 66.3586654663086,
+            "type": "WideThorn",
+            "laneIndex": 0
+        },
+        {
+            "time": 66.3586654663086,
+            "type": "DoubleJump",
+            "laneIndex": 2
+        },
+        {
+            "time": 66.89199829101563,
+            "type": "DoubleJump",
+            "laneIndex": 2
+        },
+        {
+            "time": 66.89199829101563,
+            "type": "WideThorn",
+            "laneIndex": 0
+        },
+        {
+            "time": 67.44664764404297,
+            "type": "DoubleJump",
+            "laneIndex": 2
+        },
+
+        {
+            "time": 68.5346450805664,
+            "type": "Trampoline",
+            "laneIndex": 0
+        },
+        {
+            "time": 69.06798553466797,
+            "type": "Trampoline",
+            "laneIndex": 2
+        },
+        {
+            "time": 69.601318359375,
+            "type": "Flag",
+            "laneIndex": 1
+        }
+    ]
+}
