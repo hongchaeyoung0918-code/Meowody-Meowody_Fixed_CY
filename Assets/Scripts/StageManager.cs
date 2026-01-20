@@ -23,7 +23,7 @@ public class StageManager : MonoBehaviour
     public Button[] stageButtons;
     public TMP_Text StageNumber;
     public GameObject AlbumPanel;
-    private RectTransform albumPanelRect; // Inspector 연결 대신 코드에서 자동 할당
+    private RectTransform albumPanelRect;
     public Image albumArtImage;
     public TMP_Text songTitleText;
     public TMP_Text artistText;
@@ -32,9 +32,16 @@ public class StageManager : MonoBehaviour
     [Header("리소스 설정")]
     public string jsonFileName = "SongInformation";
 
+    [Header("애니메이션 설정")]
+    [Range(0.1f, 2.0f)]
+    public float animationDuration = 0.4f;
+    public float closedX = 1350f;
+    public float openedX = 0f;
+
     private List<StageData> stageDataList;
     private int selectedStage = 1;
     private bool isPanelOpen = false;
+    private Coroutine activeSlideCoroutine;
 
     [System.Serializable]
     private class Wrapper<T>
@@ -44,15 +51,19 @@ public class StageManager : MonoBehaviour
 
     void Start()
     {
-        // AlbumPanel의 RectTransform 자동 할당
         albumPanelRect = AlbumPanel.GetComponent<RectTransform>();
+        Vector2 startPos = albumPanelRect.anchoredPosition;
+        startPos.x = closedX;
+        albumPanelRect.anchoredPosition = startPos;
 
         LoadStageData();
         InitiallizeButtons();
 
-        selectedStage = currentStage;
-        UpdateStageUI();
+        // 해금된 스테이지 반영
+        currentStage = GameSettings.CurrentStageUnlocked;
+        selectedStage = GameSettings.SelectedStage;
 
+        UpdateStageUI();
         AlbumPanel.SetActive(false);
     }
 
@@ -63,121 +74,101 @@ public class StageManager : MonoBehaviour
             int stageIndex = i + 1;
             stageButtons[i].onClick.AddListener(() => OnStageButtonClicked(stageIndex));
         }
-
-        if (playButton != null)
-        {
-            playButton.onClick.AddListener(OnPlayButtonClicked);
-        }
+        if (playButton != null) playButton.onClick.AddListener(OnPlayButtonClicked);
     }
 
     public void OnStageButtonClicked(int stageNumber)
     {
         selectedStage = stageNumber;
+        GameSettings.SetSelectedStage(stageNumber); //  메서드 사용
         UpdateStageUI();
         ShowAlbumPanel();
     }
 
     public void OnPlayButtonClicked()
     {
-        GameSettings.SetSelectedStage(selectedStage);
-        GameSettings.SetDialogueType(GameSettings.DialogueType.Intro);
         SceneManager.LoadScene($"Stage{selectedStage}");
     }
 
-    // 앨범 패널 열기 (슬라이드 인)
     public void ShowAlbumPanel()
     {
         AlbumPanel.SetActive(true);
-        StopAllCoroutines();
-        StartCoroutine(SlidePanel(albumPanelRect, 1350f, 0f, 0.5f));
+        if (activeSlideCoroutine != null) StopCoroutine(activeSlideCoroutine);
+        activeSlideCoroutine = StartCoroutine(SlidePanel(albumPanelRect.anchoredPosition.x, openedX, animationDuration));
         isPanelOpen = true;
     }
 
-    // 앨범 패널 닫기 (슬라이드 아웃)
     public void CloseAlbumPanel()
     {
         if (!isPanelOpen) return;
-
-        StopAllCoroutines();
-        StartCoroutine(SlidePanel(albumPanelRect, 0f, 1350f, 0.5f, () => AlbumPanel.SetActive(false)));
+        if (activeSlideCoroutine != null) StopCoroutine(activeSlideCoroutine);
+        activeSlideCoroutine = StartCoroutine(SlidePanel(albumPanelRect.anchoredPosition.x, closedX, animationDuration, () => AlbumPanel.SetActive(false)));
         isPanelOpen = false;
     }
 
-    // 슬라이드 애니메이션 코루틴
-    IEnumerator SlidePanel(RectTransform rect, float fromX, float toX, float duration, System.Action onComplete = null)
+    IEnumerator SlidePanel(float fromX, float toX, float duration, System.Action onComplete = null)
     {
         float elapsed = 0f;
-        Vector2 pos = rect.anchoredPosition;
-        pos.x = fromX;
-        rect.anchoredPosition = pos;
+        Vector2 pos = albumPanelRect.anchoredPosition;
 
         while (elapsed < duration)
         {
-            float t = elapsed / duration;
-            pos.x = Mathf.Lerp(fromX, toX, t);
-            rect.anchoredPosition = pos;
             elapsed += Time.deltaTime;
+            float t = elapsed / duration;
+            float curveT;
+
+            float fastTimeThreshold = 0.25f;
+            float distanceThreshold = 0.95f;
+
+            if (t <= fastTimeThreshold)
+            {
+                float segmentT = t / fastTimeThreshold;
+                curveT = Mathf.Lerp(0f, distanceThreshold, segmentT * segmentT);
+            }
+            else
+            {
+                float segmentT = (t - fastTimeThreshold) / (1f - fastTimeThreshold);
+                float slowCurve = 1f - Mathf.Pow(1f - segmentT, 4f);
+                curveT = Mathf.Lerp(distanceThreshold, 1f, slowCurve);
+            }
+
+            pos.x = Mathf.LerpUnclamped(fromX, toX, curveT);
+            albumPanelRect.anchoredPosition = pos;
             yield return null;
         }
 
         pos.x = toX;
-        rect.anchoredPosition = pos;
-
+        albumPanelRect.anchoredPosition = pos;
         onComplete?.Invoke();
+        activeSlideCoroutine = null;
     }
 
     void UpdateStageUI()
     {
-        if (stageDataList == null || stageDataList.Count == 0)
-        {
-            Debug.LogWarning("Stage data is not loaded or empty.");
-            return;
-        }
-
+        if (stageDataList == null || stageDataList.Count == 0) return;
         StageNumber.text = $"Stage {selectedStage}";
-
         for (int i = 0; i < stageButtons.Length; i++)
         {
-            stageButtons[i].interactable = (i + 1 <= currentStage);
-
+            stageButtons[i].interactable = (i + 1 <= GameSettings.CurrentStageUnlocked);
             ColorBlock cb = stageButtons[i].colors;
             cb.normalColor = (i + 1 == selectedStage) ? Color.gray : Color.white;
             stageButtons[i].colors = cb;
         }
 
         StageData data = stageDataList.Find(s => s.stage == selectedStage);
-
         if (data != null)
         {
             Sprite albumSprite = Resources.Load<Sprite>(data.albumIllustration);
-            if (albumSprite != null)
-            {
-                albumArtImage.sprite = albumSprite;
-            }
-            else
-            {
-                Debug.LogWarning("Album illustration not found: " + data.albumIllustration);
-            }
+            if (albumSprite != null) albumArtImage.sprite = albumSprite;
             songTitleText.text = data.songTitle;
             artistText.text = data.artist;
-        }
-        else
-        {
-            Debug.LogWarning("No stage data found for stage: " + selectedStage);
         }
     }
 
     void LoadStageData()
     {
         TextAsset jsonText = Resources.Load<TextAsset>(jsonFileName);
-        if (jsonText != null)
-        {
-            stageDataList = new List<StageData>(FromJson<StageData>(jsonText.text));
-        }
-        else
-        {
-            Debug.LogError("Failed to load stage data from Resources/" + jsonFileName);
-        }
+        if (jsonText != null) stageDataList = new List<StageData>(FromJson<StageData>(jsonText.text));
     }
 
     public static T[] FromJson<T>(string json)

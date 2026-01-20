@@ -673,27 +673,32 @@ public class DialogueManager : MonoBehaviour
             fadePanel.gameObject.SetActive(false);
         }
 
-        // 3. 흐름 제어 (핵심 수정 부분)
+        // 3. 흐름 제어 (방법 B: 데이터 우선 및 상태 초기화)
         if (mainUIManager != null)
         {
-            // 현재 게임 설정이 Outro 상태라면, 어떤 대사에서 스킵하든 클리어 UI를 띄워야 합니다.
-            if (GameSettings.CurrentDialogueType == GameSettings.DialogueType.Outro)
+            // 우선순위 1: 현재 대사 데이터에 특정 액션이 설정되어 있는지 확인
+            if (currentDialogue != null && !string.IsNullOrEmpty(currentDialogue.actionAfterDialogue) && currentDialogue.actionAfterDialogue != "None")
             {
-                Debug.Log("아웃트로 스킵: 클리어 UI 출력");
-                mainUIManager.HandleDialogueAction("SHOW_CLEAR_UI");
-            }
-            else if (currentDialogue != null && !string.IsNullOrEmpty(currentDialogue.actionAfterDialogue))
-            {
-                // 아웃트로가 아니더라도 특정 액션이 설정되어 있다면 실행
+                Debug.Log($"[Skip] 대사 액션 실행: {currentDialogue.actionAfterDialogue}");
                 mainUIManager.HandleDialogueAction(currentDialogue.actionAfterDialogue);
             }
+            // 우선순위 2: 아웃트로 상태라면 클리어 UI 출력
+            else if (GameSettings.CurrentDialogueType == GameSettings.DialogueType.Outro)
+            {
+                Debug.Log("[Skip] 아웃트로 종료: 클리어 UI 출력");
+                mainUIManager.HandleDialogueAction("SHOW_CLEAR_UI");
+            }
+            // 우선순위 3: 그 외(인트로 등) 상황에서는 게임 시작
             else
             {
-                // 인트로나 기타 상황에서는 게임 시작
+                Debug.Log("[Skip] 일반 시작: START_GAME 실행");
                 mainUIManager.HandleDialogueAction("START_GAME");
             }
+
+            // [핵심] 처리가 끝난 후 대화 타입을 None으로 초기화하여 다음 판에 영향을 주지 않도록 함
+            GameSettings.SetDialogueType(GameSettings.DialogueType.None);
         }
 
-        Debug.Log("대화/컷씬 스킵 완료!");
+        Debug.Log("대화/컷씬 스킵 및 GameSettings 초기화 완료");
     }
 }

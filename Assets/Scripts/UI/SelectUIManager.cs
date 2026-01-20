@@ -4,11 +4,8 @@ using UnityEngine.UI;
 using UnityEngine.Audio;
 using NUnit.Framework.Constraints;
 using TMPro;
-
-public class StartUIManager : MonoBehaviour
+public class SelectUIManager : MonoBehaviour
 {
-
-    public GameObject StartUI;
     public GameObject SettingUI;
 
     [Header("Audio")]
@@ -20,10 +17,9 @@ public class StartUIManager : MonoBehaviour
 
     void Start()
     {
-        StartUI.SetActive(true);
         SettingUI.SetActive(false);
 
-        if(PlayerPrefs.HasKey(VOLUME_KEY))
+        if (PlayerPrefs.HasKey(VOLUME_KEY))
         {
             float savedVolume = PlayerPrefs.GetFloat(VOLUME_KEY);
             volumeSlider.value = savedVolume;
@@ -48,16 +44,6 @@ public class StartUIManager : MonoBehaviour
         PlayerPrefs.SetFloat(VOLUME_KEY, value);
         PlayerPrefs.Save();
     }
-    
-    public void OnStartButtonClicked()
-    {
-        SceneManager.LoadScene("SelectScene");
-    }
-
-    public void OnQuitButtonClicked()
-    {
-        Application.Quit();
-    }
 
     // Open the setting UI
     public void OnSettingButtonClicked()
@@ -68,5 +54,10 @@ public class StartUIManager : MonoBehaviour
     public void OnCloseSettingButtonClicked()
     {
         SettingUI.SetActive(false);
+    }
+
+    public void BackToStartUI()
+    {
+        SceneManager.LoadScene("StartScene");
     }
 }

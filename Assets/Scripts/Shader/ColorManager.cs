@@ -6,7 +6,6 @@ using UnityEngine.SceneManagement;
 public class ColorManager : MonoBehaviour
 {
     [Header("Stage Progress Settings")]
-    [Tooltip("스테이지 완료까지 걸리는 총 시간 (초)")]
     public float stageDuration = 60f;
     private float elapsedTime = 0f;
 
@@ -18,10 +17,11 @@ public class ColorManager : MonoBehaviour
     [Range(0f, 100f)]
     public float colorGauge = 0f;
 
-    public static ColorManager Instance;
+    // 제어 플래그
+    private bool isGameActive = false;   // 대화/일시정지 중 여부
+    private bool isComboActive = false; // 콤보 유지 여부 (ComboManager 연동)
 
-    // 타 스크립트(ComboManager 등)와의 호환성을 위한 변수
-    private bool isComboActive = false;
+    public static ColorManager Instance;
 
     void Awake()
     {
@@ -42,6 +42,7 @@ public class ColorManager : MonoBehaviour
     {
         FindAndSetupVolume();
         ResetProgress();
+        isGameActive = false;
     }
 
     void Start()
@@ -58,38 +59,25 @@ public class ColorManager : MonoBehaviour
 
     private void FindAndSetupVolume()
     {
-        if (volume == null)
-        {
-            volume = FindFirstObjectByType<Volume>();
-        }
-
-        if (volume != null)
-        {
-            if (volume.profile.TryGet<ColorAdjustments>(out colorAdjustments))
-            {
-                Debug.Log("ColorAdjustments 연결 성공!");
-            }
-            else
-            {
-                Debug.LogError("Volume Profile에 Color Adjustments가 없습니다!");
-            }
-        }
+        if (volume == null) volume = FindFirstObjectByType<Volume>();
+        if (volume != null) volume.profile.TryGet(out colorAdjustments);
     }
 
     void Update()
     {
-        UpdateProgress();
-        UpdateVisualEffect();
+        // 대화 중이 아니고 게임이 활성화 상태일 때만 업데이트
+        if (isGameActive)
+        {
+            UpdateProgress();
+            UpdateVisualEffect();
+        }
     }
 
     private void UpdateProgress()
     {
-        // 1분(stageDuration) 동안 시간이 흐름에 따라 게이지 상승
         if (elapsedTime < stageDuration)
         {
             elapsedTime += Time.deltaTime;
-
-            // 현재 경과 시간을 0~100 사이의 진행도로 변환
             colorGauge = Mathf.Clamp((elapsedTime / stageDuration) * 100f, 0f, 100f);
         }
     }
@@ -97,52 +85,39 @@ public class ColorManager : MonoBehaviour
     private void UpdateVisualEffect()
     {
         if (colorAdjustments == null) return;
-
-        // colorGauge(0~100)를 0~1 비율로 변환
         float normalizedGauge = colorGauge / 100f;
-
-        // Saturation: -100(흑백) -> 0(컬러)
         float saturation = Mathf.Lerp(-100f, 0f, normalizedGauge);
         colorAdjustments.saturation.value = saturation;
-
-        // 선택 사항: 진행도에 따라 밝기나 대조를 추가로 조절하고 싶다면 여기에 작성
     }
 
-    // --- 외부 호출 함수 (Interaction) ---
+    // --- 외부 연동 함수들 ---
 
-    /// <summary>
-    /// 장애물 충돌 시 호출. 게이지를 10 감소시킵니다. (시간 10% 페널티)
-    /// </summary>
-    public void DecreaseGaugeOnHit()
+    // MainUIManager에서 호출 (대화 중 게이지 멈춤)
+    public void SetColorUpdateActive(bool isActive)
     {
-        // 게이지 10 감소는 전체 시간의 10% 페널티와 같음
-        float penaltyTime = stageDuration * 0.1f;
-        elapsedTime = Mathf.Max(0f, elapsedTime - penaltyTime);
-
-        // 즉시 게이지 계산 반영
-        colorGauge = Mathf.Clamp((elapsedTime / stageDuration) * 100f, 0f, 100f);
-
-        if (ComboManager.Instance != null)
-            ComboManager.Instance.ResetCombo();
-
-        Debug.Log("피격: 게이지 10 감소!");
+        isGameActive = isActive;
     }
 
-    /// <summary>
-    /// 기존 콤보 시스템과의 에러 방지를 위한 함수
-    /// </summary>
+    // ComboManager에서 호출 (에러 해결 포인트)
     public void SetComboGraceState(bool isActive)
     {
         isComboActive = isActive;
     }
 
-    /// <summary>
-    /// 게임 오버 시 화면을 완전히 컬러로 바꿈
-    /// </summary>
+    public void DecreaseGaugeOnHit()
+    {
+        float penaltyTime = stageDuration * 0.1f;
+        elapsedTime = Mathf.Max(0f, elapsedTime - penaltyTime);
+        colorGauge = Mathf.Clamp((elapsedTime / stageDuration) * 100f, 0f, 100f);
+
+        if (ComboManager.Instance != null) ComboManager.Instance.ResetCombo();
+    }
+
     public void SetGameOverGauge()
     {
         elapsedTime = stageDuration;
         colorGauge = 100f;
+        UpdateVisualEffect();
     }
 
     private void OnDestroy()

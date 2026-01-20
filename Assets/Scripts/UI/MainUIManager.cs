@@ -4,8 +4,9 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using UnityEngine.Rendering; // Volume 제어를 위해 추가
+using UnityEngine.Rendering;
 
+// 에러 방지를 위해 enum을 파일 최상단(클래스 밖)에 정의
 public enum GameFlowState
 {
     Dialogue,
@@ -43,16 +44,12 @@ public class MainUIManager : MonoBehaviour
 
     void Start()
     {
-        // 리트라이 후 멈춰있을 수 있는 시간을 확실히 초기화
         Time.timeScale = 1f;
 
-        // --- 참조 자동 할당 로직 (리트라이 대응) ---
         playerStats = FindFirstObjectByType<PlayerStats>();
         if (playerStats != null)
         {
-            // HP 초기화
             playerStats.ResetHP();
-
             PlayerStats.OnHPChanged += UpdateHPUi;
             UpdateHPUi(playerStats.HP);
         }
@@ -60,10 +57,8 @@ public class MainUIManager : MonoBehaviour
         dialogueManager = dialogueManager ?? FindFirstObjectByType<DialogueManager>();
         playerController = playerController ?? FindFirstObjectByType<PlayerController>();
         noteManager = noteManager ?? FindFirstObjectByType<NoteManager>();
-
         backgroundSpawners = FindObjectsByType<BackgroundSpawner>(FindObjectsInactive.Include, FindObjectsSortMode.None);
 
-        // --- 컬러 시스템 볼륨 강제 할당 ---
         if (ColorManager.Instance != null)
         {
             if (ColorManager.Instance.volume == null)
@@ -74,15 +69,14 @@ public class MainUIManager : MonoBehaviour
 
         currentStage = GameSettings.SelectedStage;
 
-        // 초기 UI 상태 설정
         GameClearUI.SetActive(false);
         GameOverUI.SetActive(false);
         InGameUI.SetActive(false);
         if (PauseUI != null) PauseUI.SetActive(false);
 
+        // 초기화 시 게임 요소(ColorManager 포함) 비활성화
         SetGameActive(false);
 
-        // 대화창 초기 투명도 설정
         if (dialogueManager != null && dialogueManager.dialogueBackgroundImage != null)
         {
             Color color = dialogueManager.dialogueBackgroundImage.color;
@@ -90,34 +84,25 @@ public class MainUIManager : MonoBehaviour
             dialogueManager.dialogueBackgroundImage.color = color;
         }
 
-        // 게임 시작 시 인트로 대화 호출
         StartDialogue("Intro", currentStage);
     }
 
     private void OnDisable()
     {
-        if (playerStats != null)
-        {
-            PlayerStats.OnHPChanged -= UpdateHPUi;
-        }
+        if (playerStats != null) PlayerStats.OnHPChanged -= UpdateHPUi;
     }
 
     private void OnDestroy()
     {
-        if (playerStats != null)
-        {
-            PlayerStats.OnHPChanged -= UpdateHPUi;
-        }
+        if (playerStats != null) PlayerStats.OnHPChanged -= UpdateHPUi;
     }
 
     public void UpdateHPUi(int currentHP)
     {
         if (hpIcons == null || hpIcons.Length == 0) return;
-
         for (int i = 0; i < hpIcons.Length; i++)
         {
-            if (hpIcons[i] == null) continue; // 파괴된 Image는 건너뛰기
-
+            if (hpIcons[i] == null) continue;
             hpIcons[i].sprite = (i < currentHP) ? activeHPSprite : inactiveHPSprite;
         }
     }
@@ -135,6 +120,8 @@ public class MainUIManager : MonoBehaviour
         GameSettings.SetDialogueType(GameSettings.DialogueType.Outro);
         StartDialogue("Outro", currentStage);
         InGameUI.SetActive(false);
+        // 클리어 시 대화가 시작되므로 게임 요소 정지
+        SetGameActive(false);
     }
 
     public void ShowGameOver()
@@ -148,7 +135,6 @@ public class MainUIManager : MonoBehaviour
 
     public void RetryGame()
     {
-        // 씬 로드 전 타임스케일을 먼저 복구하는 것이 안전함
         Time.timeScale = 1f;
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
@@ -156,7 +142,7 @@ public class MainUIManager : MonoBehaviour
     public void OnNextBtnClicked()
     {
         Time.timeScale = 1f;
-        SceneManager.LoadScene("StartScene");
+        SceneManager.LoadScene("SelectScene");
     }
 
     public void StartDialogue(string type, int stage = -1)
@@ -228,6 +214,12 @@ public class MainUIManager : MonoBehaviour
     private void ToggleGameElementsActive(bool isActive)
     {
         if (noteManager != null) noteManager.SetGameActive(isActive);
+
+        // 추가: StoryUI(대화)나 Pause 시에 ColorManager의 게이지 업데이트를 멈춤
+        if (ColorManager.Instance != null)
+        {
+            ColorManager.Instance.SetColorUpdateActive(isActive);
+        }
 
         if (backgroundSpawners != null)
         {

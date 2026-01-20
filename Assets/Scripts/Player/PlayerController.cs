@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using System.Collections;
-using TMPro.Examples;
 
 public class PlayerController : MonoBehaviour
 {
@@ -8,13 +7,12 @@ public class PlayerController : MonoBehaviour
 
     [Header("Jump Settings")]
     public float jumpForce = 10f;
-    public int maxJumpCount = 1; //더블 점프 비활성화
+    public int maxJumpCount = 1;
     private int currentJumpCount = 0;
-
     public float trampolineJumpForce = 15f;
 
     [Header("Invincibility Settings")]
-    public float invincibilityDuration = 2.0f; //피격 후 무적
+    public float invincibilityDuration = 2.0f;
     private bool isInvincible = false;
 
     [Header("Slide Settings")]
@@ -26,12 +24,12 @@ public class PlayerController : MonoBehaviour
     public float colliderHeightAdjustment = 0.5f;
 
     [Header("Note Attack Settings")]
-    public GameObject notePrefab;     // 유니티에서 지정할 음표 프리팹
+    public GameObject notePrefab;
     public float noteSpawnOffset = 0.8f;
     public float noteSpawnHeight = 0.5f;
 
     [Header("Ground Check Settings")]
-    public float groundCheckDistance = 0.1f; // 땅을 감지할 거리 (작을수록 정확)
+    public float groundCheckDistance = 0.1f;
     public LayerMask groundLayer;
 
     [Header("Wall Check Settings")]
@@ -41,8 +39,8 @@ public class PlayerController : MonoBehaviour
     public Transform respawnPoint;
 
     [Header("Respawn Settings")]
-    public float respawnGraceTime = 0.5f; // 리스폰 후 실패 감지 무시 시간 (0.5초)
-    private float respawnTimer = 0f; // 리스폰 무적 타이머
+    public float respawnGraceTime = 0.5f;
+    private float respawnTimer = 0f;
 
     [Header("Audio Settings")]
     public AudioClip jumpSound;
@@ -51,8 +49,7 @@ public class PlayerController : MonoBehaviour
     public AudioClip hitSound;
     private AudioSource audioSource;
 
-
-    private float failCheckTime = 0.2f; // 멈춤 감지 시간
+    private float failCheckTime = 0.2f;
     private float stopTimer = 0f;
     private bool isGameOver = false;
 
@@ -71,9 +68,7 @@ public class PlayerController : MonoBehaviour
     private Vector3 originalScale;
 
     private bool isFailing = false;
-
     private float initialXPosition;
-
     private ColorManager colorManager;
 
     [Header("Animation Settings")]
@@ -82,7 +77,6 @@ public class PlayerController : MonoBehaviour
     [Header("Death Prefab")]
     public GameObject deathRigPrefab;
     private float deathAnimationDuration = 1.5f;
-
 
     private readonly string IsRunningParam = "IsRunning";
     private readonly string IsJumpingParam = "IsJumping";
@@ -97,9 +91,7 @@ public class PlayerController : MonoBehaviour
         audioSource = GetComponent<AudioSource>();
 
         if (audioSource == null)
-        {
-            Debug.LogWarning("PlayerController requires an AudioSource component on the same GameObject.");
-        }
+            Debug.LogWarning("PlayerController requires an AudioSource component.");
 
         if (currentRigObject == null)
         {
@@ -108,13 +100,9 @@ public class PlayerController : MonoBehaviour
         }
 
         if (currentRigObject != null)
-        {
             anim = currentRigObject.GetComponent<Animator>();
-        }
         else
-        {
             anim = GetComponent<Animator>() ?? GetComponentInChildren<Animator>();
-        }
 
         originalScale = transform.localScale;
 
@@ -131,7 +119,6 @@ public class PlayerController : MonoBehaviour
 
         Vector3 startPosition = transform.position;
         transform.position = new Vector3(startPosition.x, 0f, startPosition.z);
-
         initialXPosition = transform.position.x;
 
         SetAnimationBool(IsRunningParam, true);
@@ -139,38 +126,26 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
-        // ================= [튜토리얼 입력 필터링 추가] =================
+        // 1. 튜토리얼 일시정지 중 처리
         if (TutorialManager.Instance != null && TutorialManager.Instance.IsPaused())
         {
             string allowed = TutorialManager.Instance.TargetAction;
-
             if (allowed == "UP")
             {
-                // W나 위방향키가 눌린 프레임만 아래 로직을 수행하도록 허용
-                if (!(Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow)))
-                    return;
+                if (!(Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))) return;
             }
             else if (allowed == "DOWN")
             {
-                // S나 아래방향키가 눌린 프레임만 아래 로직을 수행하도록 허용
-                if (!(Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow)))
-                    return;
+                if (!(Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow))) return;
             }
-            else
-            {
-                // 허용된 액션이 없는데 일시정지 중이면 무조건 리턴
-                return;
-            }
+            else return;
         }
-        // ===========================================================
 
-        if (!isInvincible)
-        {
-            CheckForFailure();
-        }
+        if (!isInvincible) CheckForFailure();
 
         CheckIfGrounded();
 
+        // 2. 해금 상태 체크가 포함된 입력 처리
         HandleSlide();
         HandleJump();
         HandleNoteShoot();
@@ -179,12 +154,7 @@ public class PlayerController : MonoBehaviour
 
         if (!isGameOver)
         {
-            transform.position = new Vector3(
-                initialXPosition,
-                transform.position.y,
-                transform.position.z
-            );
-
+            transform.position = new Vector3(initialXPosition, transform.position.y, transform.position.z);
             rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
         }
         else
@@ -195,31 +165,21 @@ public class PlayerController : MonoBehaviour
 
     void CheckIfGrounded()
     {
-        Vector2 raycastOrigin = new Vector2(
-                capsuleCollider.bounds.center.x,
-                capsuleCollider.bounds.min.y
-            );
-
+        Vector2 raycastOrigin = new Vector2(capsuleCollider.bounds.center.x, capsuleCollider.bounds.min.y);
         RaycastHit2D hit = Physics2D.Raycast(raycastOrigin, Vector2.down, groundCheckDistance, groundLayer);
 
         if (hit.collider != null)
         {
-            if (!isGrounded)
-            {
-                currentJumpCount = 0;
-            }
+            if (!isGrounded) currentJumpCount = 0;
             isGrounded = true;
         }
         else
-        {
             isGrounded = false;
-        }
     }
 
     void CheckForFailure()
     {
-        if (respawnTimer > 0f) return;
-        if (playerStats == null || isGameOver || isFailing) return;
+        if (respawnTimer > 0f || playerStats == null || isGameOver || isFailing) return;
 
         Vector2 wallRaycastOrigin = capsuleCollider.bounds.center;
         RaycastHit2D wallHit = Physics2D.Raycast(wallRaycastOrigin, Vector2.right, wallCheckDistance, groundLayer);
@@ -234,10 +194,7 @@ public class PlayerController : MonoBehaviour
                 stopTimer = 0f;
             }
         }
-        else
-        {
-            stopTimer = 0f;
-        }
+        else stopTimer = 0f;
     }
 
     void ProcessFailure()
@@ -246,93 +203,92 @@ public class PlayerController : MonoBehaviour
 
         SetAnimationTrigger(IsHittingParam);
         PlaySound(hitSound);
-
         if (colorManager != null) colorManager.DecreaseGaugeOnHit();
 
         playerStats.HP--;
-        if (playerStats.HP <= 0)
-        {
-            StartCoroutine(HandleDeathSequence());
-        }
-        else
-        {
-            StartCoroutine(InvincibilityCoroutine());
-        }
+        if (playerStats.HP <= 0) StartCoroutine(HandleDeathSequence());
+        else StartCoroutine(InvincibilityCoroutine());
+
+        isFailing = false;
     }
 
-    // CitizenController.cs 에러 해결용
-    public void ProcessFailureFromCitizenCollision()
-    {
-        if (isInvincible || isGameOver) return;
-        ProcessFailure();
-        Debug.Log("시민과 충돌로 인한 피격 처리 완료.");
-    }
-
-    // 일반 장애물 충돌 처리
-    public void ProcessFailureFromObstacle()
-    {
-        if (isInvincible || isGameOver) return;
-        ProcessFailure();
-        Debug.Log("장애물과 충돌로 인한 피격 처리 완료.");
-    }
+    // 외부 스크립트(CitizenController, Obstacles) 호출용 함수들
+    public void ProcessFailureFromCitizenCollision() { if (!isInvincible && !isGameOver) ProcessFailure(); }
+    public void ProcessFailureFromObstacle() { if (!isInvincible && !isGameOver) ProcessFailure(); }
 
     IEnumerator InvincibilityCoroutine()
     {
         isInvincible = true;
-        SpriteRenderer sr = GetComponentInChildren<SpriteRenderer>();
-        if (sr != null)
+        SpriteRenderer[] renderers = GetComponentsInChildren<SpriteRenderer>();
+        float elapsed = 0f;
+        while (elapsed < invincibilityDuration)
         {
-            for (float t = 0; t < invincibilityDuration; t += 0.15f)
+            foreach (var sr in renderers)
             {
-                sr.enabled = !sr.enabled;
-                yield return new WaitForSeconds(0.075f);
+                if (sr == null) continue;
+                Color c = sr.color;
+                c.a = 0.6f;
+                sr.color = c;
             }
-            sr.enabled = true;
+            yield return new WaitForSeconds(0.1f);
+
+            foreach (var sr in renderers)
+            {
+                if (sr == null) continue;
+                Color c = sr.color;
+                c.a = 1.0f;
+                sr.color = c;
+            }
+            yield return new WaitForSeconds(0.1f);
+            elapsed += 0.2f;
         }
+
+        foreach (var sr in renderers)
+        {
+            if (sr == null) continue;
+            Color c = sr.color;
+            c.a = 1.0f;
+            sr.color = c;
+        }
+
         isInvincible = false;
         currentJumpCount = 0;
     }
 
     void HandleJump()
     {
-        bool jumpInput = Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow);
+        // 튜토리얼 해금 상태 확인
+        if (TutorialManager.Instance != null && !TutorialManager.Instance.canJump) return;
 
-        if (!isSliding && jumpInput)
+        bool jumpInput = Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow);
+        if (!isSliding && jumpInput && isGrounded && currentJumpCount == 0)
         {
-            if (isGrounded && currentJumpCount == 0)
-            {
-                rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
-                rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
-                currentJumpCount = 1;
-                PlaySound(jumpSound);
-            }
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
+            currentJumpCount = 1;
+            PlaySound(jumpSound);
         }
     }
 
-    // JumpOrb.cs 에러 해결용
     public void PerformAirJumpOnContact()
     {
-        if (!isGrounded)
-        {
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
-            Debug.Log("Jump Orb Jump 실행!");
-        }
+        // JumpOrb 등에서 호출 시 점프 실행
+        rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
+        currentJumpCount = 1;
+        PlaySound(jumpSound);
     }
 
     void HandleSlide()
     {
+        // 튜토리얼 해금 상태 확인
+        if (TutorialManager.Instance != null && !TutorialManager.Instance.canSlide) return;
+
         if ((Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow)) && isGrounded && !isSliding)
         {
             StartSlide();
         }
-
-        if (isSliding)
+        if (isSliding && (Input.GetKeyUp(KeyCode.S) || Input.GetKeyUp(KeyCode.DownArrow)))
         {
-            if (Input.GetKeyUp(KeyCode.S) || Input.GetKeyUp(KeyCode.DownArrow))
-            {
-                EndSlide();
-            }
+            EndSlide();
         }
     }
 
@@ -340,13 +296,10 @@ public class PlayerController : MonoBehaviour
     {
         isSliding = true;
         PlaySound(slideSound);
-
         if (capsuleCollider != null)
         {
             float newHeight = originalColliderSize.y * slideHeightScale;
-            float heightDifference = originalColliderSize.y - newHeight;
-            float yOffsetAdjustment = heightDifference / 2f;
-
+            float yOffsetAdjustment = (originalColliderSize.y - newHeight) / 2f;
             capsuleCollider.size = new Vector2(originalColliderSize.x, newHeight);
             capsuleCollider.offset = new Vector2(originalColliderOffset.x, originalColliderOffset.y - yOffsetAdjustment);
             rb.WakeUp();
@@ -356,8 +309,6 @@ public class PlayerController : MonoBehaviour
     void EndSlide()
     {
         isSliding = false;
-        transform.localScale = originalScale;
-
         if (capsuleCollider != null)
         {
             capsuleCollider.size = originalColliderSize;
@@ -368,6 +319,8 @@ public class PlayerController : MonoBehaviour
 
     void HandleNoteShoot()
     {
+        if (!isGrounded || isSliding) return;
+
         if (Input.GetKeyDown(KeyCode.D))
         {
             if (notePrefab == null) return;
@@ -382,24 +335,17 @@ public class PlayerController : MonoBehaviour
             GameObject note = Instantiate(notePrefab, spawnPosition, Quaternion.identity);
             NoteProjectile noteProjectile = note.GetComponent<NoteProjectile>();
             if (noteProjectile != null)
-            {
                 noteProjectile.Launch(10.0f);
-            }
         }
     }
 
     void UpdateAnimationState()
     {
         if (anim == null || isGameOver) return;
-
         bool inAir = !isGrounded && !isSliding;
         SetAnimationBool(IsJumpingParam, inAir);
         SetAnimationBool(IsSlidingParam, isSliding);
-
-        if (!isSliding && !inAir)
-        {
-            SetAnimationBool(IsRunningParam, !isGameOver);
-        }
+        if (!isSliding && !inAir) SetAnimationBool(IsRunningParam, !isGameOver);
     }
 
     void SetAnimationBool(string paramName, bool value) { if (anim != null) anim.SetBool(paramName, value); }
@@ -408,10 +354,11 @@ public class PlayerController : MonoBehaviour
     void HandleDeathModelChange()
     {
         if (currentRigObject != null) currentRigObject.SetActive(false);
-        if (deathRigPrefab == null) return;
-
-        GameObject deathModel = Instantiate(deathRigPrefab, transform.position, transform.rotation, transform);
-        deathModel.SetActive(true);
+        if (deathRigPrefab != null)
+        {
+            GameObject deathModel = Instantiate(deathRigPrefab, transform.position, transform.rotation, transform);
+            deathModel.SetActive(true);
+        }
     }
 
     IEnumerator HandleDeathSequence()
@@ -419,18 +366,11 @@ public class PlayerController : MonoBehaviour
         isGameOver = true;
         enabled = false;
         rb.linearVelocity = Vector2.zero;
-
-        if (uiManager != null && uiManager.noteManager != null)
-        {
-            uiManager.noteManager.StopGame();
-        }
-
+        if (uiManager != null && uiManager.noteManager != null) uiManager.noteManager.StopGame();
         HandleDeathModelChange();
         yield return new WaitForSeconds(deathAnimationDuration);
-
         if (uiManager != null) uiManager.ShowGameOver();
     }
-
 
     void OnCollisionEnter2D(Collision2D collision)
     {
@@ -450,18 +390,10 @@ public class PlayerController : MonoBehaviour
         if (other.gameObject.CompareTag("Note_Obstacle"))
         {
             ProcessFailureFromObstacle();
-            other.gameObject.SetActive(false);
             Destroy(other.gameObject);
-            return;
         }
-
-        if (other.gameObject.CompareTag("Note_Obstacle_Persistent"))
-        {
-            ProcessFailureFromObstacle();
-            return;
-        }
-
-        if (other.gameObject.CompareTag("EndFlag"))
+        else if (other.gameObject.CompareTag("Note_Obstacle_Persistent")) ProcessFailureFromObstacle();
+        else if (other.gameObject.CompareTag("EndFlag"))
         {
             if (uiManager != null) uiManager.ShowGameClear();
             enabled = false;
@@ -470,9 +402,6 @@ public class PlayerController : MonoBehaviour
 
     void PlaySound(AudioClip clip)
     {
-        if (audioSource != null && clip != null)
-        {
-            audioSource.PlayOneShot(clip);
-        }
+        if (audioSource != null && clip != null) audioSource.PlayOneShot(clip);
     }
 }
