@@ -62,6 +62,12 @@ public class LT_PlayerController : MonoBehaviour
     private Vector2 originalColliderSize;
     private Vector2 originalColliderOffset;
 
+    // fever mode
+    private bool isFeverMode = false;
+    private float baseMoveSpeed;
+    private float baseJumpTime;
+    private float currentFeverMultiplier = 1f;
+
     // Audio Clips (필요한 것만 남김)
     [Header("Audio")]
     public AudioClip jumpSound;
@@ -119,6 +125,8 @@ public class LT_PlayerController : MonoBehaviour
     void Start()
     {
         // 시작 시 물리 설정 적용
+        baseMoveSpeed = moveSpeed;
+        baseJumpTime = timeToJumpApex;
         CalculatePhysics();
         rb.gravityScale = calculatedGravityScale;
 
@@ -253,6 +261,37 @@ public class LT_PlayerController : MonoBehaviour
         {
             noteProjectile.Launch(noteLaunchSpeed);
         }
+    }
+
+    public void SetFeverMode(bool active, float multiplier = 1.5f)
+    {
+        if (isFeverMode == active) return;
+
+        isFeverMode = active;
+        currentFeverMultiplier = active ? multiplier : 1.0f;
+
+        if (active)
+        {
+            moveSpeed = baseMoveSpeed * multiplier;
+
+            timeToJumpApex = baseJumpTime / multiplier;
+
+            if (anim != null) anim.speed = multiplier;
+
+            Debug.Log($"Fever ON. Speed: x{multiplier}");
+        }
+        else
+        {
+            moveSpeed = baseMoveSpeed;
+            timeToJumpApex = baseJumpTime;
+
+            if (anim != null) anim.speed = 1.0f;
+
+            Debug.Log("Fever OFF");
+        }
+
+        CalculatePhysics();
+        if (rb != null) rb.gravityScale = calculatedGravityScale;
     }
 
     private void CheckGround()
