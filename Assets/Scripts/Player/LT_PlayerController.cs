@@ -205,7 +205,7 @@ public class LT_PlayerController : MonoBehaviour
 
             PlaySound(jumpSound);
 
-            anim?.Play("Jump", 0, 0f);
+            anim?.Play("JUMP_start", 0, 0f);
         }
     }
 
