@@ -1,7 +1,7 @@
 using UnityEngine;
 using System.Collections;
 
-[RequireComponent(typeof(Rigidbody2D), typeof(CapsuleCollider2D))]
+[RequireComponent(typeof(Rigidbody2D), typeof(BoxCollider2D))]
 public class LT_PlayerController : MonoBehaviour
 {
     #region [1. Level Test & Physics Settings]
@@ -10,6 +10,7 @@ public class LT_PlayerController : MonoBehaviour
 
     public float jumpHeight = 3.5f;
     public float timeToJumpApex = 0.45f;
+    public float fallGravityMultiplier = 1.5f; // 낙하 속도 증가 비율
 
     [Tooltip("캐릭터 크기 스케일")]
     public Vector3 characterScale = Vector3.one;
@@ -47,7 +48,7 @@ public class LT_PlayerController : MonoBehaviour
     #region [3. Components & State]
     // Components
     private Rigidbody2D rb;
-    private CapsuleCollider2D col;
+    private BoxCollider2D col;
     private AudioSource audioSource;
     private Animator anim;
     private SpriteRenderer[] renderers; // 깜빡임 효과용
@@ -110,7 +111,7 @@ public class LT_PlayerController : MonoBehaviour
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
-        col = GetComponent<CapsuleCollider2D>();
+        col = GetComponent<BoxCollider2D>();
         audioSource = GetComponent<AudioSource>();
         anim = GetComponentInChildren<Animator>(); // 자식 오브젝트에 모델이 있는 경우 대비
         renderers = GetComponentsInChildren<SpriteRenderer>();
@@ -147,7 +148,8 @@ public class LT_PlayerController : MonoBehaviour
 
         CheckGround();
         CheckFall();
-        Move(); // 이동 로직을 여기로 이동
+        ApplyCustomGravity();
+        Move();
     }
 
     void Update()
@@ -205,7 +207,23 @@ public class LT_PlayerController : MonoBehaviour
 
             PlaySound(jumpSound);
 
-            anim?.Play("Jump", 0, 0f);
+            anim?.Play("JUMP_start", 0, 0f);
+        }
+    }
+
+    private void ApplyCustomGravity()
+    {
+        if (isGameOver) return;
+
+        // 떨어지는 중
+        if (!isGrounded && rb.linearVelocity.y < 0)
+        {
+            // 기본 중력 스케일에 낙하 배율을 곱하기
+            rb.gravityScale = calculatedGravityScale * fallGravityMultiplier;
+        }
+        else
+        {
+            rb.gravityScale = calculatedGravityScale;
         }
     }
 
@@ -215,15 +233,18 @@ public class LT_PlayerController : MonoBehaviour
         isSliding = true;
         PlaySound(slideSound);
 
-        float oldBottomY = originalColliderOffset.y - (originalColliderSize.y * 0.5f);
-
+        // 발바닥 월드 좌표 고정
+        float bottomY = originalColliderOffset.y - (originalColliderSize.y * 0.5f);
         float newHeight = originalColliderSize.y * slideSizeMultiplier;
-
-        float newOffsetY = oldBottomY + (newHeight * 0.5f) + 0.01f;
+        float newOffsetY = bottomY + (newHeight * 0.5f);
 
         col.size = new Vector2(originalColliderSize.x, newHeight);
         col.offset = new Vector2(originalColliderOffset.x, newOffsetY);
 
+        // 바닥 체크 박스 강제 접지
+        rb.position = new Vector2(rb.position.x, rb.position.y - 0.01f);
+
+        anim?.SetBool(HashSlide, true);
         rb.WakeUp();
     }
 
@@ -296,10 +317,11 @@ public class LT_PlayerController : MonoBehaviour
 
     private void CheckGround()
     {
+        // 박스 콜라이더의 가로 폭 90% 정도만 사용하여 모서리 걸림 방지
         Vector2 boxSize = new Vector2(col.size.x * 0.9f, groundCheckSize);
         Vector2 boxCenter = (Vector2)transform.position + col.offset + (Vector2.down * (col.size.y * 0.5f));
 
-        // 0f -> 0.05f
+        // 체크 거리를 0.05f 정도로 주어 바닥 감지
         RaycastHit2D hit = Physics2D.BoxCast(boxCenter, boxSize, 0f, Vector2.down, 0.05f, groundLayer);
 
         bool wasGrounded = isGrounded;
