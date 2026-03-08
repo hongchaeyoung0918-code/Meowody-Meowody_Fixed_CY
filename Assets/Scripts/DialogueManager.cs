@@ -4,6 +4,7 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Video;
 
 public class DialogueManager : MonoBehaviour
 {
@@ -48,6 +49,12 @@ public class DialogueManager : MonoBehaviour
 
     private bool _isSpeaking = false;
     private bool _isSentenceFinished = false;
+
+    //
+    public VideoPlayer videoPlayer; // ÄÆ¾À ¿µ»ó Àç»ý¿ë VideoPlayer ÄÄÆ÷³ÍÆ® ÂüÁ¶
+    public RawImage videoDisplay;
+    public GameObject videoPanel;
+
 
     private void Awake()
     {

@@ -36,7 +36,7 @@ public class MainUIManager : MonoBehaviour
     [Header("Manager References")]
     public DialogueManager dialogueManager;
     private PlayerController playerController;
-    public NoteManager noteManager;
+    //public NoteManager noteManager;
     public BackgroundSpawner[] backgroundSpawners;
 
     private GameFlowState currentFlowState = GameFlowState.Dialogue;
@@ -56,7 +56,7 @@ public class MainUIManager : MonoBehaviour
 
         dialogueManager = dialogueManager ?? FindFirstObjectByType<DialogueManager>();
         playerController = playerController ?? FindFirstObjectByType<PlayerController>();
-        noteManager = noteManager ?? FindFirstObjectByType<NoteManager>();
+        //noteManager = noteManager ?? FindFirstObjectByType<NoteManager>();
         backgroundSpawners = FindObjectsByType<BackgroundSpawner>(FindObjectsInactive.Include, FindObjectsSortMode.None);
 
         if (ColorManager.Instance != null)
@@ -213,7 +213,7 @@ public class MainUIManager : MonoBehaviour
 
     private void ToggleGameElementsActive(bool isActive)
     {
-        if (noteManager != null) noteManager.SetGameActive(isActive);
+        //if (noteManager != null) noteManager.SetGameActive(isActive);
 
         // 추가: StoryUI(대화)나 Pause 시에 ColorManager의 게이지 업데이트를 멈춤
         if (ColorManager.Instance != null)
