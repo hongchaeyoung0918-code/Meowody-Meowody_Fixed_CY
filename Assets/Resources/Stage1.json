@@ -14,22 +14,6 @@
         },
         {
           "type": "DIALOGUE",
-          "speaker": "Player",
-          "speakerName": "루",
-          "text": "테스트 테스트",
-          "position": "Left",
-          "hidePosition": "Right"
-        },
-        {
-          "type": "DIALOGUE",
-          "speaker": "Player",
-          "speakerName": "루",
-          "text": "왜 안되지",
-          "position": "Left",
-          "hidePosition": "Right"
-        },
-        {
-          "type": "DIALOGUE",
           "speaker": "Manager",
           "speakerName": "??",
           "text": "잠깐!!!",
@@ -67,6 +51,13 @@
           "speakerName": "미스터",
           "text": "반갑다. 나는 MS엔터의 캐스팅 매니저, 미스터야.",
           "position": "Right"
+        },
+        {
+          "type": "DIALOGUE",
+          "speaker": "Player",
+          "speakerName": "루",
+          "text": "MS 엔터?!!",
+          "position": "Left"
         },
         {
           "type": "DIALOGUE",
