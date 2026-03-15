@@ -22,6 +22,9 @@ public class MainUIManager : MonoBehaviour
     public GameObject GameOverUI;
     public GameObject PauseUI;
 
+    [Header("Test Settings")]
+    public bool isDialogueTestScene = false;  // DialogueTest씬에서 체크
+
     [Header("Game Clear UI Settings")]
     public TMP_Text maxComboText;
 
@@ -35,6 +38,7 @@ public class MainUIManager : MonoBehaviour
 
     [Header("Manager References")]
     public DialogueManager dialogueManager;
+    public SequenceRunner sequenceRunner;
     private PlayerController playerController;
     //public NoteManager noteManager;
     public BackgroundSpawner[] backgroundSpawners;
@@ -46,44 +50,42 @@ public class MainUIManager : MonoBehaviour
     {
         Time.timeScale = 1f;
 
-        playerStats = FindFirstObjectByType<PlayerStats>();
-        if (playerStats != null)
+        if (!isDialogueTestScene)
         {
-            playerStats.ResetHP();
-            PlayerStats.OnHPChanged += UpdateHPUi;
-            UpdateHPUi(playerStats.HP);
+            playerStats = FindFirstObjectByType<PlayerStats>();
+            if (playerStats != null)
+            {
+                playerStats.ResetHP();
+                PlayerStats.OnHPChanged += UpdateHPUi;
+                UpdateHPUi(playerStats.HP);
+            }
+
+            playerController = playerController ?? FindFirstObjectByType<PlayerController>();
+            backgroundSpawners = FindObjectsByType<BackgroundSpawner>(
+                FindObjectsInactive.Include, FindObjectsSortMode.None);
+
+            if (ColorManager.Instance?.volume == null && ColorManager.Instance != null)
+                ColorManager.Instance.volume = FindFirstObjectByType<Volume>();
+
+            if (GameClearUI != null) GameClearUI.SetActive(false);
+            if (GameOverUI != null) GameOverUI.SetActive(false);
+            if (InGameUI != null) InGameUI.SetActive(false);
+            if (PauseUI != null) PauseUI.SetActive(false);
+
+            SetGameActive(false);
         }
 
         dialogueManager = dialogueManager ?? FindFirstObjectByType<DialogueManager>();
-        playerController = playerController ?? FindFirstObjectByType<PlayerController>();
-        //noteManager = noteManager ?? FindFirstObjectByType<NoteManager>();
-        backgroundSpawners = FindObjectsByType<BackgroundSpawner>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        sequenceRunner = sequenceRunner ?? FindFirstObjectByType<SequenceRunner>();
 
-        if (ColorManager.Instance != null)
-        {
-            if (ColorManager.Instance.volume == null)
-            {
-                ColorManager.Instance.volume = FindFirstObjectByType<Volume>();
-            }
-        }
-
-        currentStage = GameSettings.SelectedStage;
-
-        GameClearUI.SetActive(false);
-        GameOverUI.SetActive(false);
-        InGameUI.SetActive(false);
-        if (PauseUI != null) PauseUI.SetActive(false);
-
-        // 초기화 시 게임 요소(ColorManager 포함) 비활성화
-        SetGameActive(false);
-
-        if (dialogueManager != null && dialogueManager.dialogueBackgroundImage != null)
+        if (dialogueManager?.dialogueBackgroundImage != null)
         {
             Color color = dialogueManager.dialogueBackgroundImage.color;
-            color.a = 0.0f;
+            color.a = 0f;
             dialogueManager.dialogueBackgroundImage.color = color;
         }
 
+        currentStage = GameSettings.SelectedStage;
         StartDialogue("Intro", currentStage);
     }
 
@@ -145,37 +147,72 @@ public class MainUIManager : MonoBehaviour
         SceneManager.LoadScene("SelectScene");
     }
 
+    /*    public void StartDialogue(string type, int stage = -1)
+        {
+            currentFlowState = GameFlowState.Dialogue;
+            int dialogueStage = (stage != -1) ? stage : currentStage;
+            string startId = "";
+            bool isOutro = (type == "Outro");
+
+            if (type == "Intro")
+            {
+                if (dialogueStage == 1) startId = "1-1_1";
+                else if (dialogueStage == 2) startId = "2-1_1";
+                else if (dialogueStage == 3) startId = "3-1_1";
+            }
+            else if (isOutro)
+            {
+                int nextChapter = (dialogueStage <= 3) ? 2 : 0;
+                if (nextChapter > 0) startId = $"{dialogueStage}-{nextChapter}_1";
+            }
+
+            if (!string.IsNullOrEmpty(startId) && dialogueManager != null)
+            {
+                dialogueManager.StartDialogue(startId, dialogueStage);
+            }
+            else
+            {
+                HandleDialogueAction(isOutro ? "SHOW_CLEAR_UI" : "START_GAME");
+            }
+        }*/
+
     public void StartDialogue(string type, int stage = -1)
     {
         currentFlowState = GameFlowState.Dialogue;
-        int dialogueStage = (stage != -1) ? stage : currentStage;
-        string startId = "";
-        bool isOutro = (type == "Outro");
+        int targetStage = (stage != -1) ? stage : currentStage;
 
-        if (type == "Intro")
-        {
-            if (dialogueStage == 1) startId = "1-1_1";
-            else if (dialogueStage == 2) startId = "2-1_1";
-            else if (dialogueStage == 3) startId = "3-1_1";
-        }
-        else if (isOutro)
-        {
-            int nextChapter = (dialogueStage <= 3) ? 2 : 0;
-            if (nextChapter > 0) startId = $"{dialogueStage}-{nextChapter}_1";
-        }
+        string scriptPath = $"Stage{targetStage}";  // Resources/Stage1.json
 
-        if (!string.IsNullOrEmpty(startId) && dialogueManager != null)
+        if (sequenceRunner != null)
         {
-            dialogueManager.StartDialogue(startId, dialogueStage);
+            bool scriptExists = Resources.Load<TextAsset>(scriptPath) != null;
+
+            if (scriptExists)
+            {
+                sequenceRunner.RunScript(scriptPath, type);  // type = "Intro" or "Outro"
+            }
+            else
+            {
+                Debug.LogWarning($"[MainUIManager] 스크립트 없음: {scriptPath}");
+                HandleDialogueAction(type == "Outro" ? "SHOW_CLEAR_UI" : "START_GAME");
+            }
         }
         else
         {
-            HandleDialogueAction(isOutro ? "SHOW_CLEAR_UI" : "START_GAME");
+            Debug.LogError("[MainUIManager] SequenceRunner가 없습니다.");
+            HandleDialogueAction("START_GAME");
         }
     }
 
     public void HandleDialogueAction(string actionType)
     {
+        if (isDialogueTestScene)
+        {
+            Debug.Log($"[DialogueTest] 대화 종료. 액션: {actionType}");
+            return;
+        }
+
+
         switch (actionType)
         {
             case "START_GAME":
