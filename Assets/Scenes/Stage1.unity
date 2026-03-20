@@ -2366,7 +2366,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &787926084
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2374,7 +2374,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 787926083}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 00a80f0893123c94e8b5c73892cba468, type: 3}
   m_Name: 
@@ -4211,6 +4211,9 @@ MonoBehaviour:
   leftCharacterImage: {fileID: 1991155058}
   rightCharacterPanel: {fileID: 652479172}
   rightCharacterImage: {fileID: 1272139682}
+  videoPlayer: {fileID: 0}
+  videoDisplay: {fileID: 0}
+  videoPanel: {fileID: 0}
 --- !u!224 &1835705629
 RectTransform:
   m_ObjectHideFlags: 0

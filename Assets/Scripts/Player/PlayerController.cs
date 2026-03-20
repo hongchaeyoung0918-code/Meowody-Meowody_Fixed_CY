@@ -366,7 +366,8 @@ public class PlayerController : MonoBehaviour
         isGameOver = true;
         enabled = false;
         rb.linearVelocity = Vector2.zero;
-        if (uiManager != null && uiManager.noteManager != null) uiManager.noteManager.StopGame();
+        //if (uiManager != null && uiManager.noteManager != null) uiManager.noteManager.StopGame();
+        
         HandleDeathModelChange();
         yield return new WaitForSeconds(deathAnimationDuration);
         if (uiManager != null) uiManager.ShowGameOver();
