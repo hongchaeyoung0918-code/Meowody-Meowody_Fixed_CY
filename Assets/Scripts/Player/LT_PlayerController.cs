@@ -455,7 +455,11 @@ public class LT_PlayerController : MonoBehaviour
         if (col == null) return;
 
         Gizmos.color = isGrounded ? Color.green : Color.red;
-        Vector2 boxSize = new Vector2(col.size.x * 0.9f, groundCheckSize);
+
+        // col.size.x * 0.9f → 직접 원하는 크기로 고정
+        // 캐릭터 scale을 0.16 이런 식으로 하면서 크기 및 위치가 이상하게 보이나 물리에는 문제 없음
+        // 나중에 구조 정리하면서 같이 정리 필요함
+        Vector2 boxSize = new Vector2(0.5f, groundCheckSize); // ← 이 x값 조절
         Vector2 boxCenter = (Vector2)transform.position + col.offset + (Vector2.down * (col.size.y * 0.5f));
         Gizmos.DrawWireCube(boxCenter, boxSize);
     }
