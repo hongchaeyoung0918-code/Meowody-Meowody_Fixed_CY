@@ -381,6 +381,15 @@ public class LT_PlayerController : MonoBehaviour
     {
         if (isInvincible || isGameOver) return;
 
+        // 슬라이딩 중 피격이면 콜라이더만 원상 복구, 애니메이션은 피격으로
+        if (isSliding)
+        {
+            isSliding = false;
+            col.size = originalColliderSize;
+            col.offset = originalColliderOffset;
+            rb.WakeUp();
+        }
+
         if (playerStats != null)
         {
             playerStats.DecreaseHP(1);
@@ -415,6 +424,13 @@ public class LT_PlayerController : MonoBehaviour
 
         SetAlpha(1.0f);
         isInvincible = false;
+
+        // 무적 후 슬라이드 홀드 중이면 즉시 적용
+        bool isDownPressed = Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow);
+        if (isDownPressed && isGrounded)
+        {
+            StartSlide();
+        }
     }
 
     private void SetAlpha(float alpha)
