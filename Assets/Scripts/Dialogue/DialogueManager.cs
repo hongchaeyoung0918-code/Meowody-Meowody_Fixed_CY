@@ -22,9 +22,12 @@ public class DialogueManager : MonoBehaviour
 
     [Header("Character Sprites")]
     public GameObject leftCharacterPanel;
-    public Image leftCharacterImage;
+    public RawImage leftCharacterRawImage; // Image -> RawImage 변경
     public GameObject rightCharacterPanel;
-    public Image rightCharacterImage;
+    public RawImage rightCharacterRawImage; // Image -> RawImage 변경
+    public Animator leftCharacterAnimator;
+    public Animator rightCharacterAnimator;
+
 
     [Header("Dialogue Background")]
     public Image dialogueBackgroundImage;
@@ -279,12 +282,12 @@ public class DialogueManager : MonoBehaviour
             if (evt.hidePosition == "Left")
             {
                 leftCharacterPanel.SetActive(false);
-                leftCharacterImage.sprite = null;
+                leftCharacterRawImage.sprite = null;
             }
             else if (evt.hidePosition == "Right")
             {
                 rightCharacterPanel.SetActive(false);
-                rightCharacterImage.sprite = null;
+                rightCharacterRawImage.sprite = null;
             }
         }
 
@@ -301,13 +304,13 @@ public class DialogueManager : MonoBehaviour
 
         if (evt.position == "Left")
         {
-            speakerPanel = leftCharacterPanel; speakerImage = leftCharacterImage;
-            companionPanel = rightCharacterPanel; companionImage = rightCharacterImage;
+            speakerPanel = leftCharacterPanel; speakerImage = leftCharacterRawImage;
+            companionPanel = rightCharacterPanel; companionImage = rightCharacterRawImage;
         }
         else if (evt.position == "Right")
         {
-            speakerPanel = rightCharacterPanel; speakerImage = rightCharacterImage;
-            companionPanel = leftCharacterPanel; companionImage = leftCharacterImage;
+            speakerPanel = rightCharacterPanel; speakerImage = rightCharacterRawImage;
+            companionPanel = leftCharacterPanel; companionImage = leftCharacterRawImage;
         }
 
         if (speakerImage != null && characterSprites.TryGetValue(evt.speaker, out Sprite sprite))
