@@ -246,6 +246,12 @@ public class LT_PlayerController : MonoBehaviour
 
         anim?.SetBool(HashSlide, true);
         rb.WakeUp();
+
+        // 애니메이션 ON/OFF 옵션
+        if (LT_SettingsManager.Instance != null && !LT_SettingsManager.Instance.useSmoothTransitions)
+        {
+            anim?.Play("SLIDE", 0, 0f);
+        }
     }
 
     private void EndSlide()
@@ -381,6 +387,8 @@ public class LT_PlayerController : MonoBehaviour
     {
         if (isInvincible || isGameOver) return;
 
+        bool wasSliding = isSliding;
+
         // 슬라이딩 중 피격이면 콜라이더만 원상 복구, 애니메이션은 피격으로
         if (isSliding)
         {
@@ -406,6 +414,12 @@ public class LT_PlayerController : MonoBehaviour
         anim?.SetTrigger(HashHit);
         PlaySound(hitSound);
         StartCoroutine(InvincibilityRoutine());
+
+        // 애니메이션 ON/OFF 옵션
+        if (wasSliding && LT_SettingsManager.Instance != null && !LT_SettingsManager.Instance.useSmoothTransitions)
+        {
+            anim?.Play("HIT", 0, 0f);
+        }
     }
 
     private IEnumerator InvincibilityRoutine()

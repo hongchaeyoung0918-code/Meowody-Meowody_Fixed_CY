@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -20,14 +19,12 @@ public class DialogueManager : MonoBehaviour
     public TMP_Text dialogueText;
     public Image dialoguePanelBackground;
 
-    [Header("Character Sprites")]
+    [Header("Character Panels")]
     public GameObject leftCharacterPanel;
-    public RawImage leftCharacterRawImage; // Image -> RawImage 변경
     public GameObject rightCharacterPanel;
-    public RawImage rightCharacterRawImage; // Image -> RawImage 변경
-    public Animator leftCharacterAnimator;
-    public Animator rightCharacterAnimator;
 
+    [Header("Character Objects (리깅 캐릭터)")]
+    [SerializeField] private CharacterEntry[] characterEntries;
 
     [Header("Dialogue Background")]
     public Image dialogueBackgroundImage;
@@ -37,20 +34,14 @@ public class DialogueManager : MonoBehaviour
     // 내부 상태
     // ───────────────────────────────────────────
 
-    private Dictionary<string, DialogueData> _dialogueDict;
-    private DialogueData _currentDialogue;
-
     private string _currentFullText;
     private int _lastDisplayedIndex = -1;
     private bool _isSpeaking = false;
     private bool _isSentenceFinished = false;
-    //???????????
     private bool _ignoreNextSentenceFinished = false;
     private bool _isProcessingNext = false;
 
-    public Dictionary<string, Sprite> characterSprites = new Dictionary<string, Sprite>();
-
-    // 대화 한 문장 완료 시 SequenceRunner에 알리는 콜백
+    private Dictionary<string, CharacterEntry> _characterDict;
     private Action _onDialogueSequenceComplete;
 
     // ───────────────────────────────────────────
@@ -59,11 +50,17 @@ public class DialogueManager : MonoBehaviour
 
     private void Awake()
     {
-        //LoadDialogueData();
-        //LoadCharacterSprites();
-        Sprite[] allSprites = Resources.LoadAll<Sprite>("");
-        foreach (var sprite in allSprites)
-            characterSprites[sprite.name] = sprite;
+        // 캐릭터 딕셔너리 초기화
+        _characterDict = new Dictionary<string, CharacterEntry>();
+        foreach (var entry in characterEntries)
+        {
+            if (!string.IsNullOrEmpty(entry.speakerKey))
+                _characterDict[entry.speakerKey] = entry;
+
+            // 시작 시 모든 캐릭터 숨기기
+            if (entry.characterObject != null)
+                entry.characterObject.SetActive(false);
+        }
 
         if (dialoguePanel != null) dialoguePanel.SetActive(false);
     }
@@ -78,60 +75,9 @@ public class DialogueManager : MonoBehaviour
     }
 
     // ───────────────────────────────────────────
-    // 데이터 로드
-    // ───────────────────────────────────────────
-
-    /// <summary>
-    /// 스테이지별 파일 로드.
-    /// Resources/Dialogues/Stage{stage}_Dialogue.json
-    /// 없으면 공통 Dialogue.json 폴백
-    /// </summary>
-    public void LoadDialogueData(int stage = 0)
-    {
-        string path = stage > 0
-            ? $"Dialogues/Stage{stage}_Dialogue"
-            : "Dialogue";
-
-        TextAsset jsonFile = Resources.Load<TextAsset>(path);
-
-        // 폴백: 기존 통합 파일
-        if (jsonFile == null && stage > 0)
-            jsonFile = Resources.Load<TextAsset>("Dialogue");
-
-        if (jsonFile == null)
-        {
-            Debug.LogError($"[DialogueManager] JSON 파일 없음: {path}");
-            return;
-        }
-
-        var container = JsonUtility.FromJson<DialogueDataContainer>(jsonFile.text);
-        _dialogueDict = container.dialogues.ToDictionary(d => d.id, d => d);
-    }
-
-    private void LoadCharacterSprites()
-    {
-        if (_dialogueDict == null) return;
-
-        var speakers = _dialogueDict.Values
-            .Select(d => d.speaker)
-            .Where(s => !string.IsNullOrEmpty(s))
-            .Distinct();
-
-        foreach (var speaker in speakers)
-        {
-            Sprite sprite = Resources.Load<Sprite>(speaker);
-            if (sprite != null)
-                characterSprites[speaker] = sprite;
-            else
-                Debug.LogWarning($"[DialogueManager] 스프라이트 없음: {speaker}");
-        }
-    }
-
-    // ───────────────────────────────────────────
     // 외부 호출 (SequenceRunner → DialogueManager)
     // ───────────────────────────────────────────
 
-    /// <summary>특정 ID의 대화 한 줄을 표시. 완료 시 onComplete 호출</summary>
     public void ShowDialogue(SequenceEvent evt, Action onComplete)
     {
         _onDialogueSequenceComplete = onComplete;
@@ -139,21 +85,23 @@ public class DialogueManager : MonoBehaviour
         ApplyDialogue(evt);
     }
 
-    /// <summary>대화창 닫기</summary>
     public void HideDialogue()
     {
         dialoguePanel.SetActive(false);
         leftCharacterPanel.SetActive(false);
         rightCharacterPanel.SetActive(false);
+
+        // 모든 캐릭터 숨기기
+        foreach (var entry in characterEntries)
+            if (entry.characterObject != null)
+                entry.characterObject.SetActive(false);
     }
 
-    /// <summary>컷씬 직후 배경 이미지를 교체할 때 사용</summary>
     public void SetDialogueBackground(Sprite sprite)
     {
         if (dialogueBackgroundImage == null || sprite == null) return;
 
         dialogueBackgroundImage.sprite = sprite;
-
         Color c = dialogueBackgroundImage.color;
         c.a = 1f;
         dialogueBackgroundImage.color = c;
@@ -168,10 +116,7 @@ public class DialogueManager : MonoBehaviour
 
     public void OnNextButtonClick()
     {
-        // 이미 처리 중이면 무시
         if (_isProcessingNext) return;
-
-        Debug.Log($"[Next] isSpeaking={_isSpeaking}, isSentenceFinished={_isSentenceFinished}");
 
         if (_isSpeaking)
         {
@@ -194,7 +139,6 @@ public class DialogueManager : MonoBehaviour
 
             Action callback = _onDialogueSequenceComplete;
             _onDialogueSequenceComplete = null;
-
             callback?.Invoke();
 
             _isProcessingNext = false;
@@ -209,8 +153,6 @@ public class DialogueManager : MonoBehaviour
     {
         StopAllCoroutines();
         _isProcessingNext = false;
-
-        // 이전 Speak의 SentenceFinished가 뒤늦게 올 수 있으므로 무시 플래그 설정
         _ignoreNextSentenceFinished = true;
         _toonyVoices?.Stop();
 
@@ -234,37 +176,20 @@ public class DialogueManager : MonoBehaviour
             return;
         }
 
-        // 한 프레임 뒤에 Speak 호출 → 이전 SentenceFinished가 먼저 소화된 후 새 문장 시작
-        StartCoroutine(SpeakNextFrame(evt));
+        StartCoroutine(SpeakNextFrame());
     }
 
-    private IEnumerator SpeakNextFrame(SequenceEvent evt)
+    private IEnumerator SpeakNextFrame()
     {
-        yield return null; // 한 프레임 대기
+        yield return null;
 
         _ignoreNextSentenceFinished = false;
         _toonyVoices?.Speak(_currentFullText, 3.5f, 0.5f, 0.3f);
-
         StartCoroutine(SentenceFinishedTimeout());
-    }
-
-    public void OnSentenceFinished()
-    {
-        // 무시 플래그가 켜져 있으면 이전 문장의 잔여 이벤트이므로 무시
-        if (_ignoreNextSentenceFinished)
-        {
-            Debug.Log("[DialogueManager] SentenceFinished 무시 (이전 문장 잔여)");
-            return;
-        }
-
-        _isSpeaking = false;
-        _isSentenceFinished = true;
-        dialogueText.text = _currentFullText;
     }
 
     private IEnumerator SentenceFinishedTimeout()
     {
-        // 텍스트 길이에 비례한 대기 시간 (최소 1초, 최대 10초)
         float timeout = Mathf.Clamp(_currentFullText.Length * 0.1f, 1f, 10f);
         yield return new WaitForSeconds(timeout);
 
@@ -275,61 +200,71 @@ public class DialogueManager : MonoBehaviour
         }
     }
 
-    private void UpdateCharacterPanels(SequenceEvent evt)  // DialogueData → SequenceEvent
+    // ───────────────────────────────────────────
+    // 캐릭터 패널 업데이트
+    // ───────────────────────────────────────────
+
+    private void UpdateCharacterPanels(SequenceEvent evt)
     {
-        if (!string.IsNullOrEmpty(evt.hidePosition))
-        {
-            if (evt.hidePosition == "Left")
-            {
-                leftCharacterPanel.SetActive(false);
-                leftCharacterRawImage.sprite = null;
-            }
-            else if (evt.hidePosition == "Right")
-            {
-                rightCharacterPanel.SetActive(false);
-                rightCharacterRawImage.sprite = null;
-            }
-        }
+        // 모든 캐릭터 숨기기
+        foreach (var entry in characterEntries)
+            if (entry.characterObject != null)
+                entry.characterObject.SetActive(false);
 
         leftCharacterPanel.SetActive(false);
         rightCharacterPanel.SetActive(false);
 
-        Color activeColor = Color.white;
-        Color inactiveColor = new Color(0.5f, 0.5f, 0.5f, 1f);
-        Vector3 activeScale = Vector3.one;
-        Vector3 inactiveScale = new Vector3(0.9f, 0.9f, 1f);
+        // hidePosition만 처리하고 종료
+        if (!string.IsNullOrEmpty(evt.hidePosition))
+            return;
 
-        Image speakerImage = null, companionImage = null;
-        GameObject speakerPanel = null, companionPanel = null;
+        // 발화자 패널/오브젝트 활성화
+        if (string.IsNullOrEmpty(evt.speaker) ||
+            !_characterDict.TryGetValue(evt.speaker, out CharacterEntry speakerEntry))
+            return;
 
-        if (evt.position == "Left")
+        GameObject speakerPanel = evt.position == "Left" ? leftCharacterPanel : rightCharacterPanel;
+        GameObject companionPanel = evt.position == "Left" ? rightCharacterPanel : leftCharacterPanel;
+
+        speakerEntry.characterObject.SetActive(true);
+        speakerPanel.SetActive(true);
+        SetCharacterColor(speakerEntry.characterObject, Color.white);
+        speakerEntry.characterObject.transform.localScale = Vector3.one;
+        ApplyExpression(speakerEntry.animator, evt.expression);
+
+        // 청자: 이전 대화에서 남아있는 캐릭터 어둡게
+        foreach (var entry in characterEntries)
         {
-            speakerPanel = leftCharacterPanel; speakerImage = leftCharacterRawImage;
-            companionPanel = rightCharacterPanel; companionImage = rightCharacterRawImage;
-        }
-        else if (evt.position == "Right")
-        {
-            speakerPanel = rightCharacterPanel; speakerImage = rightCharacterRawImage;
-            companionPanel = leftCharacterPanel; companionImage = leftCharacterRawImage;
-        }
+            if (entry.speakerKey == evt.speaker) continue;
+            if (entry.characterObject == null || !entry.characterObject.activeSelf) continue;
 
-        if (speakerImage != null && characterSprites.TryGetValue(evt.speaker, out Sprite sprite))
-        {
-            speakerImage.sprite = sprite;
-            speakerPanel.SetActive(true);
-            speakerImage.color = activeColor;
-            speakerImage.transform.localScale = activeScale;
-
-            // TODO: 캐릭터 표정 구현
-            // ApplyExpression(speakerImage, evt.expression);
-        }
-
-        if (companionImage != null && companionImage.sprite != null)
-        {
             companionPanel.SetActive(true);
-            companionImage.color = inactiveColor;
-            companionImage.transform.localScale = inactiveScale;
+            SetCharacterColor(entry.characterObject, new Color(0.5f, 0.5f, 0.5f, 1f));
+            entry.characterObject.transform.localScale = new Vector3(0.9f, 0.9f, 1f);
+            ApplyExpression(entry.animator, "Normal");
         }
+    }
+
+    private void ApplyExpression(Animator animator, string expression)
+    {
+        if (animator == null) return;
+
+        int expressionId = expression switch
+        {
+            "Happy" => 1,
+            "Sad" => 2,
+            "Surprised" => 3,
+            "Angry" => 4,
+            _ => 0  // Normal
+        };
+
+        animator.SetInteger("expression", expressionId);
+    }
+
+    private void SetCharacterColor(GameObject charObj, Color color)
+    {
+        foreach (var r in charObj.GetComponentsInChildren<SpriteRenderer>())
+            r.color = color;
     }
 
     // ───────────────────────────────────────────
@@ -345,8 +280,17 @@ public class DialogueManager : MonoBehaviour
         _lastDisplayedIndex = originalIndex;
     }
 
+    public void OnSentenceFinished()
+    {
+        if (_ignoreNextSentenceFinished) return;
+
+        _isSpeaking = false;
+        _isSentenceFinished = true;
+        dialogueText.text = _currentFullText;
+    }
+
     // ───────────────────────────────────────────
-    // 피치 설정 (유지)
+    // 피치 설정
     // ───────────────────────────────────────────
 
     private float GetPitchForSpeaker(string speakerName)
@@ -361,4 +305,12 @@ public class DialogueManager : MonoBehaviour
             _ => 2.4f
         };
     }
+}
+
+[System.Serializable]
+public class CharacterEntry
+{
+    public string speakerKey;          // JSON의 speaker 값 ("Player", "Manager" 등)
+    public GameObject characterObject; // 리깅된 캐릭터 오브젝트
+    public Animator animator;          // 캐릭터의 Animator 컴포넌트
 }
