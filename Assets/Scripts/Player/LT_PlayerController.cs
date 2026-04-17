@@ -1,7 +1,7 @@
 using UnityEngine;
 using System.Collections;
 
-[RequireComponent(typeof(Rigidbody2D), typeof(BoxCollider2D))]
+[RequireComponent(typeof(Rigidbody2D))]
 public class LT_PlayerController : MonoBehaviour
 {
     #region [1. Level Test & Physics Settings]
@@ -24,12 +24,22 @@ public class LT_PlayerController : MonoBehaviour
     #endregion
 
     #region [2. Gameplay Settings]
+    [Header("Colliders")]
+    [Tooltip("발목 부분: 바닥 물리 충돌용 (IsTrigger = false)")]
+    public CapsuleCollider2D groundCollider;
+
+    [Tooltip("몸통 부분: 장애물/아이템 피격용 (IsTrigger = true)")]
+    public CapsuleCollider2D interactionCollider;
+
+    [Tooltip("전후방 넓은 범위: 팬/배경 감지용 (IsTrigger = true)")]
+    public BoxCollider2D sensorCollider;
+
     [Header("--- Action Settings ---")]
     public int maxJumpCount = 2; // 2단 점프
     private int currentJumpCount = 0;
 
     [Header("Slide Settings")]
-    public float slideDuration = 0.5f; // 슬라이딩 지속시간 (키 떼면 취소? 시간제?)
+    public float slideDuration = 0.5f; // 슬라이딩 지속시간 (키 떼면 취소? 시간제?) -> 추후 삭제 예정
     [Range(0.1f, 1f)]
     public float slideSizeMultiplier = 0.5f; // 슬라이딩 시 콜라이더 크기 비율
 
@@ -60,8 +70,9 @@ public class LT_PlayerController : MonoBehaviour
     private bool isSliding;
     private bool isInvincible;
     private bool isGameOver;
-    private Vector2 originalColliderSize;
-    private Vector2 originalColliderOffset;
+
+    private Vector2 originalInteractionSize;
+    private Vector2 originalInteractionOffset;
 
     // fever mode
     private bool isFeverMode = false;
@@ -116,8 +127,15 @@ public class LT_PlayerController : MonoBehaviour
         anim = GetComponentInChildren<Animator>(); // 자식 오브젝트에 모델이 있는 경우 대비
         renderers = GetComponentsInChildren<SpriteRenderer>();
 
-        originalColliderSize = col.size;
-        originalColliderOffset = col.offset;
+        if (interactionCollider != null)
+        {
+            originalInteractionSize = interactionCollider.size;
+            originalInteractionOffset = interactionCollider.offset;
+        }
+        else
+        {
+            Debug.LogWarning("Interaction Collider가 할당되지 않았습니다!");
+        }
 
         uiManager = FindObjectOfType<LT_MainUIManager>();
         playerStats = FindAnyObjectByType<PlayerStats>();
@@ -233,25 +251,19 @@ public class LT_PlayerController : MonoBehaviour
         isSliding = true;
         PlaySound(slideSound);
 
-        // 발바닥 월드 좌표 고정
-        float bottomY = originalColliderOffset.y - (originalColliderSize.y * 0.5f);
-        float newHeight = originalColliderSize.y * slideSizeMultiplier;
-        float newOffsetY = bottomY + (newHeight * 0.5f);
+        // Interaction 콜라이더 크기 조절 (납작하게 눕기)
+        if (interactionCollider != null)
+        {
+            float bottomY = originalInteractionOffset.y - (originalInteractionSize.y * 0.5f);
+            float newHeight = originalInteractionSize.y * slideSizeMultiplier;
+            float newOffsetY = bottomY + (newHeight * 0.5f);
 
-        col.size = new Vector2(originalColliderSize.x, newHeight);
-        col.offset = new Vector2(originalColliderOffset.x, newOffsetY);
-
-        // 바닥 체크 박스 강제 접지
-        rb.position = new Vector2(rb.position.x, rb.position.y - 0.01f);
+            interactionCollider.size = new Vector2(originalInteractionSize.x, newHeight);
+            interactionCollider.offset = new Vector2(originalInteractionOffset.x, newOffsetY);
+        }
 
         anim?.SetBool(HashSlide, true);
         rb.WakeUp();
-
-        // 애니메이션 ON/OFF 옵션
-        if (LT_SettingsManager.Instance != null && !LT_SettingsManager.Instance.useSmoothTransitions)
-        {
-            anim?.Play("SLIDE", 0, 0f);
-        }
     }
 
     private void EndSlide()
@@ -259,9 +271,12 @@ public class LT_PlayerController : MonoBehaviour
         if (!isSliding) return;
         isSliding = false;
 
-        // 원상 복구
-        col.size = originalColliderSize;
-        col.offset = originalColliderOffset;
+        // Interaction 콜라이더 원상 복구
+        if (interactionCollider != null)
+        {
+            interactionCollider.size = originalInteractionSize;
+            interactionCollider.offset = originalInteractionOffset;
+        }
 
         rb.WakeUp();
     }
@@ -323,11 +338,11 @@ public class LT_PlayerController : MonoBehaviour
 
     private void CheckGround()
     {
-        // 박스 콜라이더의 가로 폭 90% 정도만 사용하여 모서리 걸림 방지
-        Vector2 boxSize = new Vector2(col.size.x * 0.9f, groundCheckSize);
-        Vector2 boxCenter = (Vector2)transform.position + col.offset + (Vector2.down * (col.size.y * 0.5f));
+        if (groundCollider == null) return;
 
-        // 체크 거리를 0.05f 정도로 주어 바닥 감지
+        Vector2 boxSize = new Vector2(groundCollider.size.x * 0.9f, groundCheckSize);
+        Vector2 boxCenter = (Vector2)transform.position + groundCollider.offset + (Vector2.down * (groundCollider.size.y * 0.5f));
+
         RaycastHit2D hit = Physics2D.BoxCast(boxCenter, boxSize, 0f, Vector2.down, 0.05f, groundLayer);
 
         bool wasGrounded = isGrounded;
@@ -387,21 +402,20 @@ public class LT_PlayerController : MonoBehaviour
     {
         if (isInvincible || isGameOver) return;
 
-        bool wasSliding = isSliding;
-
-        // 슬라이딩 중 피격이면 콜라이더만 원상 복구, 애니메이션은 피격으로
         if (isSliding)
         {
             isSliding = false;
-            col.size = originalColliderSize;
-            col.offset = originalColliderOffset;
+            if (interactionCollider != null)
+            {
+                interactionCollider.size = originalInteractionSize;
+                interactionCollider.offset = originalInteractionOffset;
+            }
             rb.WakeUp();
         }
 
         if (playerStats != null)
         {
             playerStats.DecreaseHP(1);
-
             if (playerStats.HP <= 0)
             {
                 Die();
@@ -410,16 +424,9 @@ public class LT_PlayerController : MonoBehaviour
         }
 
         Debug.Log("Hit Obstacle!");
-
         anim?.SetTrigger(HashHit);
         PlaySound(hitSound);
         StartCoroutine(InvincibilityRoutine());
-
-        // 애니메이션 ON/OFF 옵션
-        if (wasSliding && LT_SettingsManager.Instance != null && !LT_SettingsManager.Instance.useSmoothTransitions)
-        {
-            anim?.Play("HIT", 0, 0f);
-        }
     }
 
     private IEnumerator InvincibilityRoutine()
@@ -462,7 +469,10 @@ public class LT_PlayerController : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.CompareTag("Note_Obstacle_Persistent"))
+        // Trigger 충돌은 interactionCollider나 sensorCollider 중 하나에서 발생
+        // 태그로 어떤 오브젝트와 부딪혔는지 구분
+
+        if (other.CompareTag("Note_Obstacle_Persistent") || other.CompareTag("Note_Obstacle")) // 장애물 태그 추가 대비
         {
             OnHitObstacle();
         }
@@ -470,8 +480,10 @@ public class LT_PlayerController : MonoBehaviour
         {
             Debug.Log("Stage Clear!");
             isGameOver = true;
-            uiManager.ShowGameClear();
+            if (uiManager != null) uiManager.ShowGameClear();
         }
+
+        // 팬(Fan) 감지나 Deco 감지는 other.CompareTag("Fan") 등으로 추가 구현
     }
 
     private void PlaySound(AudioClip clip)
