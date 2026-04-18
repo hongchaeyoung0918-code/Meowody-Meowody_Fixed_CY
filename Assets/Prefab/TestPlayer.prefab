@@ -3481,7 +3481,9 @@ GameObject:
   - component: {fileID: 380474534740282529}
   - component: {fileID: 4153511651162740337}
   - component: {fileID: 1316053315192584873}
-  - component: {fileID: 7916679752046793310}
+  - component: {fileID: 1208395375808807753}
+  - component: {fileID: 7827546891030404042}
+  - component: {fileID: 7404042808489571182}
   m_Layer: 7
   m_Name: TestPlayer
   m_TagString: Player
@@ -3497,7 +3499,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5877944223028481338}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -4.7, y: -2.3, z: 0}
   m_LocalScale: {x: 0.19, y: 0.19, z: 1}
   m_ConstrainProportionsScale: 0
@@ -3661,6 +3663,9 @@ MonoBehaviour:
   fallGravityMultiplier: 2
   characterScale: {x: 0.19, y: 0.19, z: 1}
   fallYThreshold: -8
+  groundCollider: {fileID: 1208395375808807753}
+  interactionCollider: {fileID: 7827546891030404042}
+  sensorCollider: {fileID: 7404042808489571182}
   maxJumpCount: 2
   slideDuration: 0.5
   slideSizeMultiplier: 0.5
@@ -3677,8 +3682,8 @@ MonoBehaviour:
   slideSound: {fileID: 8300000, guid: 35c643837279f8b4f8dd381da10f2f59, type: 3}
   hitSound: {fileID: 8300000, guid: a1c4b559c5e802046938521106fc849f, type: 3}
   GuitarSound: {fileID: 8300000, guid: d67695bb27ed3a543a7d8248bad2ec54, type: 3}
---- !u!61 &7916679752046793310
-BoxCollider2D:
+--- !u!70 &1208395375808807753
+CapsuleCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -3711,7 +3716,81 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 1, y: 4}
+  m_Offset: {x: 1, y: 2}
+  m_Size: {x: 5, y: 2}
+  m_Direction: 1
+--- !u!70 &7827546891030404042
+CapsuleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5877944223028481338}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: 1, y: 4.5}
+  m_Size: {x: 4, y: 7}
+  m_Direction: 0
+--- !u!61 &7404042808489571182
+BoxCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5877944223028481338}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: 1, y: 4.5}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0, y: 0}
@@ -3721,7 +3800,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 3, y: 6}
+  m_Size: {x: 7, y: 7}
   m_EdgeRadius: 0
 --- !u!1 &6001709083330259489
 GameObject:
