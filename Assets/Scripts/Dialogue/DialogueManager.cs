@@ -251,10 +251,16 @@ public class DialogueManager : MonoBehaviour
 
         int expressionId = expression switch
         {
-            "Happy" => 1,
-            "Sad" => 2,
-            "Surprised" => 3,
-            "Angry" => 4,
+            "Normal" => 1,
+            "CloseEye" => 2,
+            "Surprise" => 3,
+            "Sad" => 4,
+            "Excited" => 5,
+            "Cry" => 6,
+            "DeadEye" => 7,
+            "Hit" => 8,
+            "Hehe" => 9,
+            "Hmm" => 10,
             _ => 0  // Normal
         };
 
