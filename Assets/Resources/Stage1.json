@@ -24,8 +24,7 @@
           "speaker": "Player",
           "speakerName": "루",
           "text": "누구시죠?",
-          "position": "Left",
-          "expression": "Normal"
+          "position": "Left"
         },
         {
           "type": "DIALOGUE",
@@ -40,7 +39,7 @@
           "speakerName": "루",
           "text": "물론이죠. MS엔터라면 시티 최고의 엔터잖아요!",
           "position": "Left",
-          "expression": "Normal"
+          "expression": "Cry"
         },
         {
           "type": "VIDEO",
@@ -60,7 +59,7 @@
           "speakerName": "루",
           "text": "MS 엔터?!!",
           "position": "Left",
-          "expression": "Surprise"
+          "expression": "Excited"
         },
         {
           "type": "DIALOGUE",
