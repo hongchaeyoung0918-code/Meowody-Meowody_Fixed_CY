@@ -9,8 +9,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1655691087855299697}
-  - component: {fileID: 3126403422242822148}
   - component: {fileID: 6410356957050605691}
+  - component: {fileID: 3126403422242822148}
+  - component: {fileID: 5719495914171298034}
   m_Layer: 0
   m_Name: "\uB3C4\uC2DC1"
   m_TagString: Untagged
@@ -33,6 +34,20 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6410356957050605691
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 31769333305494613}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1fcae820b9ca89f44b75c389528a4901, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  parallaxSpeed: 0.1
+  mapBaseSpeed: 5
 --- !u!212 &3126403422242822148
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -88,7 +103,7 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &6410356957050605691
+--- !u!114 &5719495914171298034
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -97,8 +112,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 31769333305494613}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1fcae820b9ca89f44b75c389528a4901, type: 3}
+  m_Script: {fileID: 11500000, guid: 68f1badaa12ee1245a937f4edf5378ae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  parallaxSpeed: 0.1
-  mapBaseSpeed: 5
+  cameraTransform: {fileID: 0}
+  scrollFactorX: 0.9
