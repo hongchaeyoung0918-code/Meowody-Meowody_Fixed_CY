@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: Test_Deco_Tree
   m_EditorClassIdentifier: 
   prefab: {fileID: 1498722978449205407, guid: 8000c838eeac711478c78657d404de51, type: 3}
-  yOffset: -2
+  yOffset: -1
   spawnWeight: 5

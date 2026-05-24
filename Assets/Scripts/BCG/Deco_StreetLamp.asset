@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: Deco_StreetLamp
   m_EditorClassIdentifier: 
   prefab: {fileID: 1660055336721422623, guid: 9d73309a18708b04b9dc24038b6aa8e5, type: 3}
-  yOffset: -5
+  yOffset: -4.5
   spawnWeight: 8

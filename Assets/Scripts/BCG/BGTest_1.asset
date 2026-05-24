@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   backgroundPrefabs:
   - {fileID: 31769333305494613, guid: 173fcf88b0fade048858a82abeefdcc1, type: 3}
-  - {fileID: 8347611393996414671, guid: e16a69ab414a0f242ab2b0197dd1ca17, type: 3}
+  - {fileID: 6446009876153634581, guid: 5223daa2e15d5a7468639fcfd4f4cc70, type: 3}
   - {fileID: 260014930191799446, guid: cd6f8533d6887464a9a9f7e833b83be6, type: 3}
   - {fileID: 4353578526796472442, guid: 0a2e78e65499bc94db51edc79aed11a5, type: 3}
   - {fileID: 3551395192444427464, guid: e12f4b4c18430b946ac98b7ba2ebd349, type: 3}
