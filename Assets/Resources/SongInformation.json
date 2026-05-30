@@ -1,0 +1,32 @@
+[
+  {
+    "stage": 1,
+    "albumIllustration": "Album1",
+    "songTitle": "Cotton Candy",
+    "artist": "viyn"
+  },
+  {
+    "stage": 2,
+    "albumIllustration": "Album2",
+    "songTitle": "Jazz House",
+    "artist": "DJ Vortex"
+  },
+  {
+    "stage": 3,
+    "albumIllustration": "Album3",
+    "songTitle": "Running Night",
+    "artist": "Luna Waves"
+  },
+  {
+    "stage": 4,
+    "albumIllustration": "storm_edge_cover",
+    "songTitle": "Edge of Storm",
+    "artist": "Crimson Tempest"
+  },
+  {
+    "stage": 5,
+    "albumIllustration": "finale_starfall",
+    "songTitle": "Starfall Symphony",
+    "artist": "Eclipse Ensemble"
+  }
+]

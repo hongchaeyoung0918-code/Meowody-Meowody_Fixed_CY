@@ -1,0 +1,114 @@
+﻿{
+  "stage": 1,
+  "sequences": [
+    {
+      "scriptType": "Intro",
+      "events": [
+        {
+          "type": "DIALOGUE",
+          "speaker": "Player",
+          "speakerName": "루",
+          "text": "어제보다 하늘이 맑네. 노래하기 좋은 날이야!",
+          "position": "Left",
+          "hidePosition": "Right"
+        },
+        {
+          "type": "DIALOGUE",
+          "speaker": "Manager",
+          "speakerName": "??",
+          "text": "잠깐!!!",
+          "position": "Right"
+        },
+        {
+          "type": "DIALOGUE",
+          "speaker": "Player",
+          "speakerName": "루",
+          "text": "누구시죠?",
+          "position": "Left"
+        },
+        {
+          "type": "DIALOGUE",
+          "speaker": "Manager",
+          "speakerName": "??",
+          "text": "혹시 MS엔터에 대해 아니?",
+          "position": "Right"
+        },
+        {
+          "type": "DIALOGUE",
+          "speaker": "Player",
+          "speakerName": "루",
+          "text": "물론이죠. MS엔터라면 시티 최고의 엔터잖아요!",
+          "position": "Left"
+        },
+        {
+          "type": "VIDEO",
+          "videoFileName": "cutscene_casting.mp4",
+          "skippable": true
+        },
+        {
+          "type": "DIALOGUE",
+          "speaker": "Manager",
+          "speakerName": "미스터",
+          "text": "반갑다. 나는 MS엔터의 캐스팅 매니저, 미스터야.",
+          "position": "Right"
+        },
+        {
+          "type": "DIALOGUE",
+          "speaker": "Player",
+          "speakerName": "루",
+          "text": "MS 엔터?!!",
+          "position": "Left"
+        },
+        {
+          "type": "DIALOGUE",
+          "speaker": "Player",
+          "speakerName": "루",
+          "text": "...그래, 가보자.",
+          "position": "Left",
+          "hidePosition": "Right",
+          "actionAfter": "SHOW_CLEAR_UI"
+        }
+      ]
+    },
+    {
+      "scriptType": "Outro",
+      "events": [
+        {
+          "type": "DIALOGUE",
+          "speaker": "Manager",
+          "speakerName": "미스터",
+          "text": "잠깐!!!",
+          "position": "Right"
+        },
+        {
+          "type": "DIALOGUE",
+          "speaker": "Player",
+          "speakerName": "루",
+          "text": "물론이죠. MS엔터라면 시티 최고의 엔터잖아요!",
+          "position": "Left"
+        },
+        {
+          "type": "VIDEO",
+          "videoFileName": "cutscene_casting.mp4",
+          "skippable": true
+        },
+        {
+          "type": "DIALOGUE",
+          "speaker": "Manager",
+          "speakerName": "미스터",
+          "text": "반갑다. 나는 MS엔터의 캐스팅 매니저, 미스터야.",
+          "position": "Right"
+        },
+        {
+          "type": "DIALOGUE",
+          "speaker": "Player",
+          "speakerName": "루",
+          "text": "...그래, 가보자.",
+          "position": "Left",
+          "hidePosition": "Right",
+          "actionAfter": "SHOW_CLEAR_UI"
+        }
+      ]
+    }
+  ]
+}

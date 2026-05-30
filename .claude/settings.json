@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(node --version)",
+      "Bash(python3:*)",
+      "Bash(python -c:*)",
+      "mcp__mcp-unity__get_gameobject",
+      "mcp__mcp-unity__batch_execute",
+      "mcp__mcp-unity__update_component",
+      "mcp__mcp-unity__save_scene",
+      "mcp__mcp-unity__recompile_scripts",
+      "mcp__mcp-unity__execute_menu_item",
+      "mcp__mcp-unity__get_console_logs",
+      "mcp__mcp-unity__create_prefab",
+      "mcp__mcp-unity__create_material",
+      "mcp__mcp-unity__update_gameobject",
+      "mcp__mcp-unity__send_console_log",
+      "Bash(done)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\virgo\\Downloads\\Meowody-Meowody_Fixed_JH\\Meowody-Meowody_Fixed_JH\\Assets"
+    ]
+  }
+}

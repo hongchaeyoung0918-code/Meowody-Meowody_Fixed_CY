@@ -1,0 +1,660 @@
+﻿{
+  "dialogues": [
+    {
+      "id": "1-1_1",
+      "stage": 1,
+      "speaker": "Player",
+      "name": "루",
+      "text": "어제보다 하늘이 맑네. 노래하기 좋은 날이야!",
+      "position": "Left",
+      "hideCharacterPosition": "Right",
+      "nextDialogueId": "1-1_2"
+    },
+    {
+      "id": "1-1_2",
+      "stage": 1,
+      "speaker": "Player",
+      "name": "루",
+      "text": "오늘도 달려볼까?",
+      "position": "Left",
+      "hideCharacterPosition": "Right",
+      "nextDialogueId": "End",
+      "nextDialogueId": "START_GAME"
+    },
+    {
+      "id": "1-2_1",
+      "stage": 1,
+      "speaker": "Manager",
+      "name": "미스터",
+      "text": "잠깐!!!",
+      "position": "Right",
+      "nextDialogueId": "1-2_2"
+    },
+    {
+      "id": "1-2_2",
+      "stage": 1,
+      "speaker": "Player",
+      "name": "루",
+      "text": "...누구지? 마을에선 본 적 없는 차림새야.",
+      "position": "Left",
+      "nextDialogueId": "1-2_3"
+    },
+    {
+      "id": "1-2_3",
+      "stage": 1,
+      "speaker": "Manager",
+      "name": "미스터",
+      "text": "하하, 이런 곳에서 인재를 발견할 줄이야.",
+      "position": "Right",
+      "nextDialogueId": "1-2_4"
+    },
+    {
+      "id": "1-2_4",
+      "stage": 1,
+      "speaker": "Player",
+      "name": "루",
+      "text": "누, 누구세요?",
+      "position": "Left",
+      "nextDialogueId": "1-2_5"
+    },
+    {
+      "id": "1-2_5",
+      "stage": 1,
+      "speaker": "Manager",
+      "name": "미스터",
+      "text": "꼬마야, MS엔터테인먼트라고 들어봤니?",
+      "position": "Right",
+      "nextDialogueId": "1-2_6"
+    },
+    {
+      "id": "1-2_6",
+      "stage": 1,
+      "speaker": "Player",
+      "name": "루",
+      "text": "물론이죠. MS엔터라면 시티 최고의 엔터잖아요!",
+      "position": "Left",
+      "nextDialogueId": "1-2_Cut_1"
+    },
+    {
+      "id": "1-2_Cut_1",
+      "stage": 1,
+      "speaker": "",
+      "name": "",
+      "text": "",
+      "position": "",
+      "isCutscene": true,
+      "cutsceneImage": "cutscene_casting",
+      "fadeOutDuration": 0.0,
+      "nextDialogueId": "1-2_7"
+    },
+    {
+      "id": "1-2_7",
+      "stage": 1,
+      "speaker": "Manager",
+      "name": "미스터",
+      "text": "반갑다. 나는 MS엔터의 캐스팅 매니저, 미스터야.",
+      "position": "Right",
+      "nextDialogueId": "1-2_8"
+    },
+    {
+      "id": "1-2_8",
+      "stage": 1,
+      "speaker": "Player",
+      "name": "루",
+      "text": "MS 엔터?!!",
+      "position": "Left",
+      "nextDialogueId": "1-2_9"
+    },
+    {
+      "id": "1-2_9",
+      "stage": 1,
+      "speaker": "Manager",
+      "name": "미스터",
+      "text": "아까 잘 들었다. 너 같은 재능은 도시에서도 통할 거야. 우리와 함께하지 않겠니?",
+      "position": "Right",
+      "nextDialogueId": "1-2_10"
+    },
+    {
+      "id": "1-2_10",
+      "stage": 1,
+      "speaker": "Player",
+      "name": "루",
+      "text": "...!",
+      "position": "Left",
+      "nextDialogueId": "1-2_11"
+    },
+    {
+      "id": "1-2_11",
+      "stage": 1,
+      "speaker": "Player",
+      "name": "루",
+      "text": "저 같은 시골 고양이가 가수가 될 수 있을까요? 전 그냥 노래가 좋아서 부르는 건데…",
+      "position": "Left",
+      "nextDialogueId": "1-2_12"
+    },
+    {
+      "id": "1-2_12",
+      "stage": 1,
+      "speaker": "Manager",
+      "name": "미스터",
+      "text": "그게 바로 재능이야. 진심이 담긴 노래는 어디서든 통하지.",
+      "position": "Right",
+      "nextDialogueId": "1-2_13"
+    },
+    {
+      "id": "1-2_13",
+      "stage": 1,
+      "speaker": "Manager",
+      "name": "미스터",
+      "text": "도시로 와. 네 노래를 들려줄 무대가 있어.",
+      "position": "Right",
+      "nextDialogueId": "1-2_14"
+    },
+    {
+      "id": "1-2_14",
+      "stage": 1,
+      "speaker": "Player",
+      "name": "루",
+      "text": "도시라니... 그곳은 어떤 곳일까?",
+      "hideCharacterPosition": "Right",
+      "position": "Left",
+      "nextDialogueId": "1-2_15"
+    },
+    {
+      "id": "1-2_15",
+      "stage": 1,
+      "speaker": "Player",
+      "name": "루",
+      "text": "그곳 사람들에게도 내 노래를 들려줄 수 있을까?",
+      "hideCharacterPosition": "Right",
+      "position": "Left",
+      "nextDialogueId": "1-2_16"
+    },
+    {
+      "id": "1-2_16",
+      "stage": 1,
+      "speaker": "Player",
+      "name": "루",
+      "text": "...그래, 가보자.",
+      "hideCharacterPosition": "Right",
+      "position": "Left",
+      "nextDialogueId": "End",
+      "actionAfterDialogue": "SHOW_CLEAR_UI"
+    },
+    {
+      "id": "2-1_1",
+      "stage": 2,
+      "speaker": "Player",
+      "name": "루",
+      "text": "여기가... 시티인가?",
+      "position": "Left",
+      "hideCharacterPosition": "Right",
+      "nextDialogueId": "2-1_2"
+    },
+    {
+      "id": "2-1_2",
+      "stage": 2,
+      "speaker": "Citizen",
+      "name": "회색 시민들",
+      "text": "...",
+      "position": "Right",
+      "nextDialogueId": "2-1_3"
+    },
+    {
+      "id": "2-1_3",
+      "stage": 2,
+      "speaker": "Player",
+      "name": "루",
+      "text": "모두가 바쁘게 걷고 있어... 그런데 왜 이렇게 색이 없지?",
+      "position": "Left",
+      "hideCharacterPosition": "Right",
+      "nextDialogueId": "2-1_4"
+    },
+    {
+      "id": "2-1_4",
+      "stage": 2,
+      "speaker": "Player",
+      "name": "루",
+      "text": "사람들의 얼굴도, 하늘도, 전부 회색빛이야.",
+      "position": "Left",
+      "hideCharacterPosition": "Right",
+      "nextDialogueId": "2-1_5"
+    },
+    {
+      "id": "2-1_5",
+      "stage": 2,
+      "speaker": "RivalWolf",
+      "name": "카이",
+      "text": "어이, 너!!",
+      "position": "Right",
+      "nextDialogueId": "2-1_6"
+    },
+    {
+      "id": "2-1_6",
+      "stage": 2,
+      "speaker": "Player",
+      "name": "루",
+      "text": "?",
+      "position": "Left",
+      "nextDialogueId": "2-1_7"
+    },
+    {
+      "id": "2-1_7",
+      "stage": 2,
+      "speaker": "RivalWolf",
+      "name": "카이",
+      "text": "기타? 하, 이런 데까지 시골 고양이가 기어 오다니.",
+      "position": "Right",
+      "nextDialogueId": "2-1_8"
+    },
+    {
+      "id": "2-1_8",
+      "stage": 2,
+      "speaker": "Player",
+      "name": "루",
+      "text": ".. 너는 누구야?",
+      "position": "Left",
+      "nextDialogueId": "2-1_9"
+    },
+    {
+      "id": "2-1_9",
+      "stage": 2,
+      "speaker": "RivalWolf",
+      "name": "카이",
+      "text": "날 모르는 걸 보니 정말 시골구석에서 왔구나?",
+      "position": "Right",
+      "nextDialogueId": "2-1_10"
+    },
+    {
+      "id": "2-1_10",
+      "stage": 2,
+      "speaker": "RivalWolf",
+      "name": "카이",
+      "text": "난 카이. 너 같은 촌놈들과는 달리 진짜 무대에 서 본 뮤지션이지.",
+      "position": "Right",
+      "nextDialogueId": "2-1_11"
+    },
+    {
+      "id": "2-1_11",
+      "stage": 2,
+      "speaker": "Player",
+      "name": "루",
+      "text": "나도 뮤지션이 꿈이야! 그래서 음악을 하러 왔어.",
+      "position": "Left",
+      "nextDialogueId": "2-1_12"
+    },
+    {
+      "id": "2-1_12",
+      "stage": 2,
+      "speaker": "RivalWolf",
+      "name": "카이",
+      "text": "뭐? 꿈 깨. 이곳은 재능이 아니라, 완벽함만 살아남는 곳이야.",
+      "position": "Right",
+      "nextDialogueId": "2-1_13"
+    },
+    {
+      "id": "2-1_13",
+      "stage": 2,
+      "speaker": "RivalWolf",
+      "name": "카이",
+      "text": "네 순진한 노래 따위로는 안 통해.",
+      "position": "Right",
+      "nextDialogueId": "2-1_14"
+    },
+    {
+      "id": "2-1_14",
+      "stage": 2,
+      "speaker": "Player",
+      "name": "루",
+      "text": "그.. 그럴 리 없어. 진심이면 사람들에게 전해질 거야.",
+      "position": "Left",
+      "nextDialogueId": "2-1_15"
+    },
+    {
+      "id": "2-1_15",
+      "stage": 2,
+      "speaker": "RivalWolf",
+      "name": "카이",
+      "text": "... 그 진심이 네 발목을 잡을 거다. 세상은 그렇게 따뜻하지 않다고?",
+      "position": "Right",
+      "nextDialogueId": "2-1_16"
+    },
+    {
+      "id": "2-1_16",
+      "stage": 2,
+      "speaker": "RivalWolf",
+      "name": "카이",
+      "text": "울면서 집에 돌아갈 날을 기대하지, 촌고양이.",
+      "position": "Right",
+      "nextDialogueId": "2-1_17"
+    },
+    {
+      "id": "2-1_17",
+      "stage": 2,
+      "speaker": "Player",
+      "name": "루",
+      "text": "...",
+      "position": "Left",
+      "hideCharacterPosition": "Right",
+      "nextDialogueId": "2-1_Cut_2"
+    },
+    {
+      "id": "2-1_Cut_2",
+      "stage": 2,
+      "speaker": "",
+      "name": "",
+      "text": "",
+      "isCutscene": true,
+      "cutsceneImage": "Cutscene_anxiety",
+      "fadeInDuration": 1.5,
+      "cutsceneDisplayDuration": 1.5,
+      "fadeOutDuration": 0.0,
+      "fadeFromBlackOnStart": true,
+      "nextDialogueId": "2-1_18"
+    },
+    {
+      "id": "2-1_18",
+      "stage": 2,
+      "speaker": "Player",
+      "name": "루",
+      "text": "심장이 빠르게 뛴다. 목소리가... 머릿속에서 울려...",
+      "position": "Left",
+      "hideCharacterPosition": "Right",
+      "nextDialogueId": "2-1_19"
+    },
+    {
+      "id": "2-1_19",
+      "stage": 2,
+      "speaker": "Anxiety",
+      "name": "내면의 불안",
+      "text": "넌 재능이 없어. 사람들은 널 보지 않아. 돌아가, 루.",
+      "position": "Right",
+      "nextDialogueId": "2-1_20"
+    },
+    {
+      "id": "2-1_20",
+      "stage": 2,
+      "speaker": "Player",
+      "name": "루",
+      "text": "이건... 뭐야... 머릿속에... 목소리가..!",
+      "position": "Left",
+      "hideCharacterPosition": "Right",
+      "nextDialogueId": "End",
+      "actionAfterDialogue": "START_GAME"
+    },
+    {
+      "id": "2-2_1",
+      "stage": 2,
+      "speaker": "Player",
+      "name": "루",
+      "text": "도시의 어둠이 내 안까지 번진 것 같아...",
+      "position": "Left",
+      "hideCharacterPosition": "Right",
+      "nextDialogueId": "2-2_2"
+    },
+    {
+      "id": "2-2_2",
+      "stage": 2,
+      "speaker": "Player",
+      "name": "루",
+      "text": "정말...정말 난 가수가 될 수 없는걸까...?",
+      "position": "Left",
+      "hideCharacterPosition": "Right",
+      "nextDialogueId": "2-2_3"
+    },
+    {
+      "id": "2-2_3",
+      "stage": 2,
+      "speaker": "",
+      "name": "???",
+      "text": "저기...괜찮아요?",
+      "position": "Right",
+      "nextDialogueId": "2-2_4"
+    },
+    {
+      "id": "2-2_4",
+      "stage": 2,
+      "speaker": "Player",
+      "name": "루",
+      "text": "응? 넌... 누구야?",
+      "position": "Left",
+      "nextDialogueId": "2-2_5"
+    },
+    {
+      "id": "2-2_5",
+      "stage": 2,
+      "speaker": "GirlFan",
+      "name": "아리",
+      "text": "아까, 당신의 노래를 들었어요. 정말 따스한 목소리던걸요!",
+      "position": "Right",
+      "nextDialogueId": "2-2_6"
+    },
+    {
+      "id": "2-2_6",
+      "stage": 2,
+      "speaker": "Player",
+      "name": "루",
+      "text": "내 노래가... 누군가에게 닿았다고?",
+      "position": "Left",
+      "nextDialogueId": "2-2_7"
+    },
+    {
+      "id": "2-2_7",
+      "stage": 2,
+      "speaker": "GirlFan",
+      "name": "아리",
+      "text": "네! 그러니까 멈추지 말아요. 당신의 목소리를 계속 듣고 싶어요!",
+      "position": "Right",
+      "nextDialogueId": "2-2_8"
+    },
+    {
+      "id": "2-2_8",
+      "stage": 2,
+      "speaker": "Player",
+      "name": "루",
+      "text": "그렇게 말해줘서... 정말 고마워.",
+      "position": "Left",
+      "nextDialogueId": "2-2_9"
+    },
+    {
+      "id": "2-2_9",
+      "stage": 2,
+      "speaker": "Player",
+      "name": "루",
+      "text": "... 그래. 난 아직 끝나지 않았어.",
+      "position": "Left",
+      "nextDialogueId": "2-2_10"
+    },
+    {
+      "id": "2-2_10",
+      "stage": 2,
+      "speaker": "Player",
+      "name": "루",
+      "text": "다음엔 내 노래로 도시의 사람들을 웃게 만들거야.",
+      "position": "Left",
+      "nextDialogueId": "End",
+      "actionAfterDialogue": "SHOW_CLEAR_UI"
+    },
+    {
+      "id": "3-1_1",
+      "stage": 3,
+      "speaker": "Player",
+      "name": "루",
+      "text": "여긴 네온시티. 화려한 불빛인데, 이상하게 차가워.",
+      "position": "Left",
+      "hideCharacterPosition": "Right",
+      "nextDialogueId": "3-1_2"
+    },
+    {
+      "id": "3-1_2",
+      "stage": 3,
+      "speaker": "Citizen",
+      "name": "회색 시민들",
+      "text": "...",
+      "position": "Right",
+      "nextDialogueId": "3-1_3"
+    },
+    {
+      "id": "3-1_3",
+      "stage": 3,
+      "speaker": "Player",
+      "name": "루",
+      "text": "도시 사람들... 아직도 표정이 없네.",
+      "position": "Left",
+      "hideCharacterPosition": "Right",
+      "nextDialogueId": "3-1_4"
+    },
+    {
+      "id": "3-1_4",
+      "stage": 3,
+      "speaker": "Player",
+      "name": "루",
+      "text": "아까 내 노래가 누군가에게 닿을 수 있다고 그랬지.",
+      "position": "Left",
+      "hideCharacterPosition": "Right",
+      "nextDialogueId": "3-1_5"
+    },
+    {
+      "id": "3-1_5",
+      "stage": 3,
+      "speaker": "Player",
+      "name": "루",
+      "text": "들려줄게, 나의 노래를.",
+      "position": "Left",
+      "hideCharacterPosition": "Right",
+      "nextDialogueId": "End",
+      "actionAfterDialogue": "START_GAME"
+    },
+    {
+      "id": "3-2_1",
+      "stage": 3,
+      "speaker": "Player",
+      "name": "루",
+      "text": "…끝났어.",
+      "position": "Left",
+      "hideCharacterPosition": "Right",
+      "nextDialogueId": "3-2_2"
+    },
+    {
+      "id": "3-2_2",
+      "stage": 3,
+      "speaker": "Citizen",
+      "name": "회색 시민들",
+      "text": "...이 노래, 따뜻하다...",
+      "position": "Right",
+      "nextDialogueId": "3-2_3"
+    },
+    {
+      "id": "3-2_3",
+      "stage": 3,
+      "speaker": "Citizen",
+      "name": "회색 시민들",
+      "text": "뭔가... 마음이 편해져...",
+      "position": "Right",
+      "nextDialogueId": "3-2_Cut_1"
+    },
+    {
+      "id": "3-2_Cut_1",
+      "stage": 3,
+      "speaker": "",
+      "name": "",
+      "text": "",
+      "isCutscene": true,
+      "fadeInDuration": 1.5,
+      "cutsceneDisplayDuration": 1.5,
+      "cutsceneImage": "cutscene_overcome",
+      "fadeOutDuration": 0.0,
+      "nextDialogueId": "3-2_4"
+    },
+    {
+      "id": "3-2_4",
+      "stage": 3,
+      "speaker": "Player",
+      "name": "루",
+      "text": "이 도시가… 이제 색을 되찾았어.",
+      "position": "Left",
+      "hideCharacterPosition": "Right",
+      "nextDialogueId": "3-2_5"
+    },
+    {
+      "id": "3-2_5",
+      "stage": 3,
+      "speaker": "Player",
+      "name": "루",
+      "text": "그래, 이게 내가 하고 싶었던 일이야.",
+      "position": "Left",
+      "hideCharacterPosition": "Right",
+      "nextDialogueId": "3-2_6"
+    },
+    {
+      "id": "3-2_6",
+      "stage": 3,
+      "speaker": "GirlFan",
+      "name": "아리",
+      "text": "우와, 대단해요! 도시가 완전히 달라졌어요!",
+      "position": "Right",
+      "nextDialogueId": "3-2_7"
+    },
+    {
+      "id": "3-2_7",
+      "stage": 3,
+      "speaker": "Player",
+      "name": "루",
+      "text": "...나 혼자선 못했을 거야. 네가 내게 다시 노래하게 해줬으니까.",
+      "position": "Left",
+      "nextDialogueId": "3-2_8"
+    },
+    {
+      "id": "3-2_8",
+      "stage": 3,
+      "speaker": "Citizen",
+      "name": "회색 시민들",
+      "text": "루! 더 들려줘! 네 노래를!",
+      "position": "Right",
+      "nextDialogueId": "3-2_9"
+    },
+    {
+      "id": "3-2_9",
+      "stage": 3,
+      "speaker": "Player",
+      "name": "루",
+      "text": "좋아. 다음은 더 밝은 곡이야.",
+      "position": "Left",
+      "nextDialogueId": "3-2_Cut_3"
+    },
+    {
+      "id": "3-2_Cut_3",
+      "stage": 3,
+      "speaker": "",
+      "name": "",
+      "text": "",
+      "isCutscene": true,
+      "fadeInDuration": 1.5,
+      "cutsceneDisplayDuration": 1.5,
+      "fadeOutDuration": 0.0,
+      "cutsceneImage": "cutscene_stepout",
+      "nextDialogueId": "3-2_10"
+    },
+    {
+      "id": "3-2_10",
+      "stage": 3,
+      "speaker": "Player",
+      "name": "루",
+      "text": "...MS엔터가 보인다.",
+      "position": "Left",
+      "hideCharacterPosition": "Right",
+      "nextDialogueId": "3-2_11"
+    },
+    {
+      "id": "3-2_11",
+      "stage": 3,
+      "speaker": "Player",
+      "name": "루",
+      "text": "기다려, 미스터. 이제 준비됐어.",
+      "position": "Left",
+      "hideCharacterPosition": "Right",
+      "nextDialogueId": "End",
+      "actionAfterDialogue": "SHOW_CLEAR_UI"
+    }
+  ]
+}
