@@ -30,6 +30,10 @@ public class DialogueManager : MonoBehaviour
     public Image dialogueBackgroundImage;
     public Image startBackgroundImage;
 
+    [Header("Position Anchors")]
+    public Transform leftAnchor;  // 씬에 설치한 왼쪽 빈 오브젝트
+    public Transform rightAnchor; // 씬에 설치한 오른쪽 빈 오브젝트
+
     // ───────────────────────────────────────────
     // 내부 상태
     // ───────────────────────────────────────────
@@ -206,43 +210,38 @@ public class DialogueManager : MonoBehaviour
 
     private void UpdateCharacterPanels(SequenceEvent evt)
     {
-        // 모든 캐릭터 숨기기
+        // 1. 모든 캐릭터를 화면 밖(또는 비활성화)으로 정리
         foreach (var entry in characterEntries)
+        {
             if (entry.characterObject != null)
                 entry.characterObject.SetActive(false);
+        }
 
+        // 2. 패널 초기화
         leftCharacterPanel.SetActive(false);
         rightCharacterPanel.SetActive(false);
 
-        // hidePosition만 처리하고 종료
-        if (!string.IsNullOrEmpty(evt.hidePosition))
-            return;
+        if (!string.IsNullOrEmpty(evt.hidePosition)) return;
 
-        // 발화자 패널/오브젝트 활성화
-        if (string.IsNullOrEmpty(evt.speaker) ||
-            !_characterDict.TryGetValue(evt.speaker, out CharacterEntry speakerEntry))
-            return;
-
-        GameObject speakerPanel = evt.position == "Left" ? leftCharacterPanel : rightCharacterPanel;
-        GameObject companionPanel = evt.position == "Left" ? rightCharacterPanel : leftCharacterPanel;
-
-        speakerEntry.characterObject.SetActive(true);
-        speakerPanel.SetActive(true);
-        SetCharacterColor(speakerEntry.characterObject, Color.white);
-        speakerEntry.characterObject.transform.localScale = Vector3.one;
-        ApplyExpression(speakerEntry.animator, evt.expression);
-
-        // 청자: 이전 대화에서 남아있는 캐릭터 어둡게
-        foreach (var entry in characterEntries)
+        // 3. 발화자 처리
+        if (_characterDict.TryGetValue(evt.speaker, out CharacterEntry speakerEntry))
         {
-            if (entry.speakerKey == evt.speaker) continue;
-            if (entry.characterObject == null || !entry.characterObject.activeSelf) continue;
+            speakerEntry.characterObject.SetActive(true);
 
-            companionPanel.SetActive(true);
-            SetCharacterColor(entry.characterObject, new Color(0.5f, 0.5f, 0.5f, 1f));
-            entry.characterObject.transform.localScale = new Vector3(0.9f, 0.9f, 1f);
-            ApplyExpression(entry.animator, "Normal");
+            // 위치 결정 및 물리적 이동
+            Transform targetAnchor = (evt.position == "Left") ? leftAnchor : rightAnchor;
+            GameObject targetPanel = (evt.position == "Left") ? leftCharacterPanel : rightCharacterPanel;
+
+            speakerEntry.characterObject.transform.position = targetAnchor.position;
+            speakerEntry.characterObject.transform.rotation = targetAnchor.rotation;
+
+            targetPanel.SetActive(true);
+            ApplyExpression(speakerEntry.animator, evt.expression);
+            SetCharacterColor(speakerEntry.characterObject, Color.white);
         }
+
+        // 4. 청자 처리 (옵션: 이전 대화 상대를 반대편에 유지하고 싶을 때)
+        // 이 부분은 기획에 따라 '이전 화자'를 기억해뒀다가 반대편 앵커에 세워두면 됩니다.
     }
 
     private void ApplyExpression(Animator animator, string expression)
