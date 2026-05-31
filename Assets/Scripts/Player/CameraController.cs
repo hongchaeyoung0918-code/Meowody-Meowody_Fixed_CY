@@ -4,7 +4,7 @@ public class CameraController : MonoBehaviour
 {
     public Transform player;
 
-    [Header("¸Ê °æ°è ¼³Á¤")]
+    [Header("ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½")]
     public float minX;
     public float maxX;
     public float minY;
@@ -30,7 +30,7 @@ public class CameraController : MonoBehaviour
 
         float clampedX = Mathf.Clamp(targetPosition.x, minX, maxX);
         //float clampedY = Mathf.Clamp(targetPosition.y, minY, maxY);
-        float clampedY = 0f;
+        float clampedY = 5.5f;
 
         transform.position = new Vector3(clampedX, clampedY, targetPosition.z);
     }

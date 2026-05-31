@@ -40,8 +40,11 @@ public class LT_NoteInteraction : MonoBehaviour
     }
 
     // =========================================================================
-    //  Trigger
+    //  Trigger (근처 감지 → 스페이스바로 스위칭)
     // =========================================================================
+
+    /// <summary>현재 근처에 있는 originalObject의 인덱스 (-1이면 없음)</summary>
+    private int nearbyNoteIndex = -1;
 
     private void OnTriggerEnter2D(Collider2D other)
     {
@@ -49,17 +52,41 @@ public class LT_NoteInteraction : MonoBehaviour
         {
             if (other.gameObject == originalObjects[i])
             {
-                originalObjects[i].SetActive(false);
-                matchedObjects[i].SetActive(true);
-
-                GameObject textObj = FindChildWithTag(matchedObjects[i].transform, scoreTextTag);
-                if (textObj != null) textObj.SetActive(true);
-
-                StartCoroutine(ScaleBounceAndScoreRoutine(matchedObjects[i].transform, textObj));
-                MelodySection.NotifyNoteCollected(originalObjects[i]);
+                nearbyNoteIndex = i;
                 return;
             }
         }
+    }
+
+    private void OnTriggerExit2D(Collider2D other)
+    {
+        if (nearbyNoteIndex >= 0 && nearbyNoteIndex < originalObjects.Length
+            && other.gameObject == originalObjects[nearbyNoteIndex])
+        {
+            nearbyNoteIndex = -1;
+        }
+    }
+
+    /// <summary>
+    /// 스페이스바 입력 시 LT_PlayerController_v2에서 호출합니다.
+    /// 근처에 originalObject가 있으면 스위칭을 수행합니다.
+    /// </summary>
+    public bool TrySwitchNote()
+    {
+        if (nearbyNoteIndex < 0) return false;
+
+        int i = nearbyNoteIndex;
+        nearbyNoteIndex = -1;
+
+        originalObjects[i].SetActive(false);
+        matchedObjects[i].SetActive(true);
+
+        GameObject textObj = FindChildWithTag(matchedObjects[i].transform, scoreTextTag);
+        if (textObj != null) textObj.SetActive(true);
+
+        StartCoroutine(ScaleBounceAndScoreRoutine(matchedObjects[i].transform, textObj));
+        MelodySection.NotifyNoteCollected(originalObjects[i]);
+        return true;
     }
 
     // =========================================================================

@@ -88,8 +88,9 @@ public class NewColorManager : MonoBehaviour
 
     private void UpdateVisualEffect()
     {
+        // 장애물·장식·팬 프랍의 컬러화율에 따라 배경 채도 결정
         if (GrayscaleRendererFeature.Instance != null)
-            GrayscaleRendererFeature.Instance.SetSaturation(0f);
+            GrayscaleRendererFeature.Instance.SetSaturation(GetPropColorizationRate());
 
         for (int i = 0; i < _colorKeepers.Count; i++)
         {
@@ -129,6 +130,35 @@ public class NewColorManager : MonoBehaviour
     {
         colorGauge = 100f;
         UpdateVisualEffect();
+    }
+
+    // ── 프랍 컬러화율 (배경 채도 계산용) ─────────────────────────
+
+    /// <summary>
+    /// 장애물 + 장식 + 팬 프랍의 컬러화 비율 (0~1).
+    /// 배경 스프라이트의 채도를 이 값으로 설정합니다.
+    /// </summary>
+    public float GetPropColorizationRate()
+    {
+        int total = 0, colorized = 0;
+
+        for (int i = 0; i < _colorKeepers.Count; i++)
+        {
+            var keeper = _colorKeepers[i];
+            if (keeper == null) continue;
+
+            var cat = keeper.Category;
+            if (cat == ColorKeeperCategory.Obstacle ||
+                cat == ColorKeeperCategory.Decoration ||
+                cat == ColorKeeperCategory.FanProp)
+            {
+                total++;
+                if (keeper.IsColorized) colorized++;
+            }
+        }
+
+        if (total == 0) return 0f;
+        return (float)colorized / total;
     }
 
     // ── Deco 컬러화 통계 ─────────────────────────────────────────

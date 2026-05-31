@@ -11,6 +11,7 @@ TagManager:
   - PSD
   - ScoreText
   - Decor
+  - Obstacle
   layers:
   - Default
   - TransparentFX

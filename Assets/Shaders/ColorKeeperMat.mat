@@ -44,7 +44,7 @@ Material:
     - PixelSnap: 0
     - _AlphaClip: 0.01
     - _EnableExternalAlpha: 0
-    - _Saturation: 0
+    - _Saturation: 0.1
     - _ZWrite: 0
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}

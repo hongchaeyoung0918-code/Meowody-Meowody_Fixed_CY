@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 93f1e3af33d340f49855ebf0a5c7138f, type: 3}
+  m_Name: StageBCGData
+  m_EditorClassIdentifier: 
+  backgroundPrefabs:
+  - {fileID: 31769333305494613, guid: 173fcf88b0fade048858a82abeefdcc1, type: 3}
+  - {fileID: 1850987564504406472, guid: 1aa4117092c79e4448ac96bf23913f23, type: 3}
+  - {fileID: 260014930191799446, guid: cd6f8533d6887464a9a9f7e833b83be6, type: 3}
+  - {fileID: 4353578526796472442, guid: 0a2e78e65499bc94db51edc79aed11a5, type: 3}
+  - {fileID: 3254357903646685186, guid: 4ac26fbf103892a4ebfe8bc3a33d1b5b, type: 3}
+  - {fileID: 1881014491630521553, guid: c86a49c7f8de1bb42bfb2864841db2aa, type: 3}
+  scrollFactors:
+  - 0.9
+  - 0.6
+  - 0.4
+  - 0.3
+  backgroundYPositions:
+  - 3
+  - 4.5
+  - 2.5
+  - 2.1
+  - 5.55
+  - 2.5
+  decorationDatas:
+  - {fileID: 11400000, guid: 6fcd167710107c648874699c75adb62a, type: 2}
+  minInterval: 5
+  maxInterval: 15

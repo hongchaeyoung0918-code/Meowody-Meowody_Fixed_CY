@@ -6,31 +6,49 @@ public class ObjectSwitcher : MonoBehaviour
     public GameObject[] originalObjects;
     public GameObject[] matchedObjects;
 
+    /// <summary>í˜„ì¬ ê·¼ì²˜ì— ìˆëŠ” originalObjectì˜ ì¸ë±ìŠ¤ (-1ì´ë©´ ì—†ìŒ)</summary>
+    private int nearbyObjectIndex = -1;
+
     private void OnTriggerEnter2D(Collider2D collision)
     {
         for (int i = 0; i < originalObjects.Length; i++)
         {
             if (collision.gameObject == originalObjects[i])
             {
-                // 1. ½Ã°¢Àû ±³Ã¼
-                originalObjects[i].SetActive(false);
-                matchedObjects[i].SetActive(true);
-
-                // ---------------------------------------------------------
-                // ¡Ú 2. Á¡¼ö Ãß°¡ ·ÎÁ÷ (µ¥ÀÌÅÍ ¹İ¿µ) ¡Ú
-                // ---------------------------------------------------------
-                if (ScoreManager.Instance != null)
-                {
-                    // ÆÒÀ» ¸¸³µÀ» ¶§ Á¡¼ö¸¦ ¿Ã¸®´Â ÇÔ¼ö È£Ãâ
-                    ScoreManager.Instance.AddHandshake();
-                }
-                // ---------------------------------------------------------
-
-                // 3. ¾Ö´Ï¸ŞÀÌ¼Ç ½ÇÇà
-                StartCoroutine(ScaleBounce(matchedObjects[i].transform));
-                break; // Ã£¾ÒÀ¸¸é ·çÇÁ Å»Ãâ
+                nearbyObjectIndex = i;
+                break;
             }
         }
+    }
+
+    private void OnTriggerExit2D(Collider2D collision)
+    {
+        if (nearbyObjectIndex >= 0 && nearbyObjectIndex < originalObjects.Length
+            && collision.gameObject == originalObjects[nearbyObjectIndex])
+        {
+            nearbyObjectIndex = -1;
+        }
+    }
+
+    /// <summary>
+    /// ìŠ¤í˜ì´ìŠ¤ë°” ì…ë ¥ ì‹œ LT_PlayerController_v2ì—ì„œ í˜¸ì¶œí•©ë‹ˆë‹¤.
+    /// ê·¼ì²˜ì— originalObjectê°€ ìˆìœ¼ë©´ ìŠ¤ìœ„ì¹­ì„ ìˆ˜í–‰í•©ë‹ˆë‹¤.
+    /// </summary>
+    public bool TrySwitchObject()
+    {
+        if (nearbyObjectIndex < 0) return false;
+
+        int i = nearbyObjectIndex;
+        nearbyObjectIndex = -1;
+
+        originalObjects[i].SetActive(false);
+        matchedObjects[i].SetActive(true);
+
+        if (ScoreManager.Instance != null)
+            ScoreManager.Instance.AddHandshake();
+
+        StartCoroutine(ScaleBounce(matchedObjects[i].transform));
+        return true;
     }
 
     private IEnumerator ScaleBounce(Transform target)

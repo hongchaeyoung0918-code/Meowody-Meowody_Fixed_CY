@@ -81,6 +81,9 @@ public class LT_PlayerController_v2 : MonoBehaviour
     private GameObject nearbyDecorObject;
     private ColorKeeper[] nearbyDecorKeepers;
 
+    private LT_NoteInteraction _noteInteraction;
+    private ObjectSwitcher _objectSwitcher;
+
     private bool isFeverMode = false;
     private float baseMoveSpeed;
     private float baseJumpTime;
@@ -128,6 +131,9 @@ public class LT_PlayerController_v2 : MonoBehaviour
         audioSource = GetComponent<AudioSource>();
         anim = GetComponentInChildren<Animator>();
         renderers = GetComponentsInChildren<SpriteRenderer>();
+
+        _noteInteraction = GetComponent<LT_NoteInteraction>();
+        _objectSwitcher = GetComponent<ObjectSwitcher>();
 
         if (interactionCollider != null)
         {
@@ -301,15 +307,31 @@ public class LT_PlayerController_v2 : MonoBehaviour
 
     private void TryRestoreDecor()
     {
-        if (nearbyDecorKeepers == null || nearbyDecorKeepers.Length == 0) return;
-        if (anim != null) anim.SetTrigger(HashGuitar);
-        foreach (var keeper in nearbyDecorKeepers)
+        bool switched = false;
+
+        // 1. 노트 스위칭 시도
+        if (_noteInteraction != null && _noteInteraction.TrySwitchNote())
+            switched = true;
+
+        // 2. 오브젝트 스위칭 시도
+        if (_objectSwitcher != null && _objectSwitcher.TrySwitchObject())
+            switched = true;
+
+        // 3. Decor 컬러 복원 시도
+        if (nearbyDecorKeepers != null && nearbyDecorKeepers.Length > 0)
         {
-            if (keeper != null && !keeper.IsColorized)
-                keeper.ForceFullColor();
+            foreach (var keeper in nearbyDecorKeepers)
+            {
+                if (keeper != null && !keeper.IsColorized)
+                    keeper.ForceFullColor();
+            }
+            nearbyDecorObject = null;
+            nearbyDecorKeepers = null;
+            switched = true;
         }
-        nearbyDecorObject = null;
-        nearbyDecorKeepers = null;
+
+        if (switched && anim != null)
+            anim.SetTrigger(HashGuitar);
     }
 
     // =========================================================================
@@ -375,10 +397,16 @@ public class LT_PlayerController_v2 : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.CompareTag("Note_Obstacle_Persistent"))
+        if (other.CompareTag("Obstacle"))
         {
             isInsideObstacle = true;
-            if (!isInvincible) OnHitObstacle();
+            if (!isInvincible)
+            {
+                OnHitObstacle();
+                // 장애물 회피 실패 표시
+                var colorizer = other.GetComponentInParent<ObstacleDodgeColorizer>();
+                if (colorizer != null) colorizer.wasHit = true;
+            }
         }
         else if (other.CompareTag("EndFlag"))
         {
@@ -399,7 +427,7 @@ public class LT_PlayerController_v2 : MonoBehaviour
 
     private void OnTriggerExit2D(Collider2D other)
     {
-        if (other.CompareTag("Note_Obstacle_Persistent"))
+        if (other.CompareTag("Obstacle"))
         {
             isInsideObstacle = false;
         }

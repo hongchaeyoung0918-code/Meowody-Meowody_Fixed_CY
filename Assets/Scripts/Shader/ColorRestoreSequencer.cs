@@ -12,8 +12,7 @@ using UnityEngine;
 //   2. colorKeeperMaterial 에 ColorKeeperMat 할당
 //   3. objects 리스트에 복원할 오브젝트를 순서대로 드래그
 //   4. startGauge / endGauge 로 전체 복원 구간 조정
-//   5. transitionRange 로 한 오브젝트당 부드럽게 전환될 구간 조정
-//   6. Play → 게이지가 오르면 목록 순서대로 하나씩 컬러 복원
+//   5. Play → 게이지가 오르면 목록 순서대로 하나씩 컬러 복원
 // ──────────────────────────────────────────────────────────────────
 public class ColorRestoreSequencer : MonoBehaviour
 {
@@ -31,16 +30,10 @@ public class ColorRestoreSequencer : MonoBehaviour
     [Tooltip("마지막 오브젝트가 복원 완료되는 게이지")]
     [Range(0f, 100f)] public float endGauge = 100f;
 
-    [Tooltip("한 오브젝트가 흑백→풀컬러로 전환되는 게이지 구간\n" +
-             "0 = 즉시 전환, 5~15 = 부드럽게 전환")]
-    [Range(0f, 30f)] public float transitionRange = 5f;
-
     // ── 내부 상태 ──────────────────────────────────────────────────
     private readonly List<ColorKeeper> _keepers = new();
-    private readonly List<float> _originalThresholds = new();
+    private readonly List<float> _thresholds = new();
     private int _currentIndex = 0;
-
-    private const float LOCKED_THRESHOLD = 9999f;
 
     // ── 초기화 ──────────────────────────────────────────────────
     void Awake()
@@ -48,14 +41,10 @@ public class ColorRestoreSequencer : MonoBehaviour
         ApplySequence();
     }
 
-    /// <summary>
-    /// objects 목록 순서에 따라 각 오브젝트에 threshold 를 배분하고,
-    /// 첫 번째만 잠금 해제합니다.
-    /// </summary>
     public void ApplySequence()
     {
         _keepers.Clear();
-        _originalThresholds.Clear();
+        _thresholds.Clear();
         _currentIndex = 0;
 
         if (colorKeeperMaterial == null)
@@ -66,7 +55,6 @@ public class ColorRestoreSequencer : MonoBehaviour
 
         if (objects == null || objects.Count == 0) return;
 
-        // 유효한(SpriteRenderer가 있는) 오브젝트만 추림
         var valid = new List<GameObject>();
         foreach (var obj in objects)
         {
@@ -90,23 +78,15 @@ public class ColorRestoreSequencer : MonoBehaviour
             keeper.Initialize(colorKeeperMaterial);
 
             float threshold = startGauge + i * spacing;
-            _originalThresholds.Add(threshold);
+            _thresholds.Add(threshold);
             _keepers.Add(keeper);
 
-            // 모든 오브젝트를 잠금 (threshold를 도달 불가능 값으로)
-            keeper.restoreThreshold = LOCKED_THRESHOLD;
-            keeper.transitionRange  = transitionRange;
-
             Debug.Log($"[ColorRestoreSequencer] [{i}] '{obj.name}'" +
-                      $" → 예정 threshold={threshold:F1}");
+                      $" → threshold={threshold:F1}");
         }
-
-        // 첫 번째 오브젝트만 잠금 해제
-        if (_keepers.Count > 0)
-            _keepers[0].restoreThreshold = _originalThresholds[0];
     }
 
-    // ── 매 프레임: 현재 오브젝트 완료 → 다음 잠금 해제 ────────────
+    // ── 매 프레임: 현재 오브젝트 완료 → 다음으로 진행 ────────────
     void Update()
     {
         AdvanceSequence();
@@ -114,25 +94,42 @@ public class ColorRestoreSequencer : MonoBehaviour
 
     private void AdvanceSequence()
     {
-        // 이미 탄환(ForceFullColor)으로 순서 건너뛴 경우도 처리
         while (_currentIndex < _keepers.Count)
         {
             if (_keepers[_currentIndex] == null || _keepers[_currentIndex].IsColorized)
             {
                 _currentIndex++;
-
-                // 다음 오브젝트 잠금 해제
-                if (_currentIndex < _keepers.Count)
-                {
-                    _keepers[_currentIndex].restoreThreshold = _originalThresholds[_currentIndex];
-                    Debug.Log($"[ColorRestoreSequencer] [{_currentIndex}] '{_keepers[_currentIndex].name}' 잠금 해제" +
-                              $" → threshold={_originalThresholds[_currentIndex]:F1}");
-                }
             }
             else
             {
-                break; // 현재 오브젝트가 아직 미완성 → 대기
+                break;
             }
+        }
+    }
+
+    /// <summary>
+    /// NewColorManager에서 호출하여 현재 순서의 keeper에게만 게이지를 전달합니다.
+    /// 순서가 안 된 keeper는 갱신하지 않습니다.
+    /// </summary>
+    public void UpdateSequence(float colorGauge)
+    {
+        for (int i = 0; i < _keepers.Count; i++)
+        {
+            if (_keepers[i] == null) continue;
+
+            if (i < _currentIndex)
+            {
+                // 이미 완료된 것은 풀컬러 유지
+                continue;
+            }
+            else if (i == _currentIndex)
+            {
+                // 현재 복원 대상: 게이지가 threshold 이상이면 컬러 전달
+                float threshold = _thresholds[i];
+                if (colorGauge >= threshold)
+                    _keepers[i].UpdateColor(colorGauge);
+            }
+            // 나머지는 아직 잠금 상태 → 아무것도 안 함
         }
     }
 

@@ -1,6 +1,15 @@
 using System;
 using UnityEngine;
 
+/// <summary>ColorKeeper가 부착된 오브젝트의 종류를 구분합니다.</summary>
+public enum ColorKeeperCategory
+{
+    Obstacle,    // 장애물
+    Decoration,  // 장식
+    FanProp,     // 팬 프랍
+    Other        // 기타 (배경 등)
+}
+
 // ──────────────────────────────────────────────────────────────────
 // ColorKeeper  (GRIS 스타일 개별 컬러 복원)
 //
@@ -19,18 +28,18 @@ using UnityEngine;
 [RequireComponent(typeof(SpriteRenderer))]
 public class ColorKeeper : MonoBehaviour
 {
+    [Header("Category")]
+    [Tooltip("이 오브젝트의 종류 (장애물/장식/팬 프랍/기타)")]
+    [SerializeField] private ColorKeeperCategory category = ColorKeeperCategory.Other;
+
+    /// <summary>이 ColorKeeper의 카테고리를 반환합니다.</summary>
+    public ColorKeeperCategory Category => category;
+
     [Header("Material")]
     [Tooltip("SpriteColorKeeper 셰이더로 만든 머티리얼")]
     [SerializeField] private Material colorKeeperMaterial;
 
-    [Header("GRIS Color Restore Settings")]
-    [Tooltip("이 값에 도달하면 컬러 복원이 시작됩니다 (0~100)")]
-    [Range(0f, 100f)]
-    public float restoreThreshold = 30f;
-
-    [Tooltip("복원 전환이 완료되기까지의 게이지 구간 (0이면 즉시 전환)")]
-    [Range(0f, 50f)]
-    public float transitionRange = 10f;
+    private float initialSaturation;
 
     // ── 내부 상태 ────────────────────────────────────────────────
     private SpriteRenderer        _spriteRenderer;
@@ -63,8 +72,8 @@ public class ColorKeeper : MonoBehaviour
 
         _spriteRenderer.material = colorKeeperMaterial;
 
-        // 처음엔 흑백
-        SetSaturation(0f);
+        initialSaturation = colorKeeperMaterial.GetFloat(SaturationID);
+        SetSaturation(initialSaturation);
     }
 
     void OnEnable()
@@ -95,19 +104,7 @@ public class ColorKeeper : MonoBehaviour
         // 이미 컬러화됐으면 유지
         if (IsColorized) { SetSaturation(1f); return; }
 
-        float saturation;
-
-        if (transitionRange <= 0f)
-        {
-            saturation = colorGauge >= restoreThreshold ? 1f : 0f;
-        }
-        else
-        {
-            saturation = Mathf.Clamp01(
-                (colorGauge - restoreThreshold) / transitionRange
-            );
-        }
-
+        float saturation = Mathf.Max(colorGauge / 100f, initialSaturation);
         SetSaturation(saturation);
 
         // 완전히 복원되면 영구 컬러화 상태로 전환

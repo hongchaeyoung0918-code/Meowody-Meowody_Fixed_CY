@@ -1,3 +1,4 @@
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -17,18 +18,25 @@ public class LT_MainUIManager : MonoBehaviour
     public Sprite activeHPSprite;
     public Sprite inactiveHPSprite;
 
+    [Header("Countdown UI")]
+    public GameObject countdownBubble;    // 말풍선 오브젝트 (자식에 숫자 오브젝트 포함)
+    public GameObject[] countdownNumbers; // 0: 3, 1: 2, 2: 1 (3→2→1 순서로 각각의 게임오브젝트)
+
     private LT_PlayerController playerController;
+    private LT_PlayerController_v2 playerControllerV2;
     private PlayerStats playerStats;
     private BackgroundSpawner[] backgroundSpawners; // 배경 스크롤러 참조 (선택사항)
 
     private bool isPaused = false;
     private bool isGameActive = false;
+    private bool isCountingDown = false;
 
     void Awake()
     {
         // 매니저 및 컴포넌트 캐시
-        playerStats      = FindFirstObjectByType<PlayerStats>();
-        playerController = FindFirstObjectByType<LT_PlayerController>();
+        playerStats        = FindFirstObjectByType<PlayerStats>();
+        playerController   = FindFirstObjectByType<LT_PlayerController>();
+        playerControllerV2 = FindFirstObjectByType<LT_PlayerController_v2>();
 
         // 배경 스크롤러 탐색 (선택사항)
         backgroundSpawners = FindObjectsByType<BackgroundSpawner>(
@@ -47,9 +55,15 @@ public class LT_MainUIManager : MonoBehaviour
         GameClearUI.SetActive(false);
         GameOverUI.SetActive(false);
         if (PauseUI != null) PauseUI.SetActive(false);
+        if (countdownBubble != null) countdownBubble.SetActive(false);
 
         // 3. �÷��̾� ���� �ʱ�ȭ
-        if (playerStats != null)
+        if (playerControllerV2 != null)
+        {
+            playerControllerV2.ResetHP();
+            UpdateHPUi(playerControllerV2.HP);
+        }
+        else if (playerStats != null)
         {
             playerStats.ResetHP();
             UpdateHPUi(playerStats.HP);
@@ -61,14 +75,22 @@ public class LT_MainUIManager : MonoBehaviour
 
     private void OnEnable()
     {
+        LT_PlayerController_v2.OnHPChanged += UpdateHPUi;
         PlayerStats.OnHPChanged += UpdateHPUi;
-        Debug.Log("[LT_UI] OnEnable - subscribed to OnHPChanged");
     }
 
     private void OnDisable()
     {
+        LT_PlayerController_v2.OnHPChanged -= UpdateHPUi;
         PlayerStats.OnHPChanged -= UpdateHPUi;
-        Debug.Log("[LT_UI] OnDisable - unsubscribed from OnHPChanged");
+    }
+
+    void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            OnPauseBtnClicked();
+        }
     }
 
     // --- Core Game Flow ---
@@ -154,15 +176,48 @@ public class LT_MainUIManager : MonoBehaviour
 
     public void OnPauseBtnClicked()
     {
-        if (!isGameActive) return;
+        if (!isGameActive || isCountingDown) return;
 
-        isPaused = !isPaused;
+        if (!isPaused)
+        {
+            // 일시정지 진입
+            isPaused = true;
+            if (PauseUI != null) PauseUI.SetActive(true);
+            Time.timeScale = 0f;
+        }
+        else
+        {
+            // 일시정지 해제 → 카운트다운 시작
+            if (PauseUI != null) PauseUI.SetActive(false);
+            StartCoroutine(ResumeCountdown());
+        }
+    }
 
-        if (PauseUI != null) PauseUI.SetActive(isPaused);
-        Time.timeScale = isPaused ? 0f : 1f;
+    private IEnumerator ResumeCountdown()
+    {
+        isCountingDown = true;
 
-        // �Ͻ����� �� �÷��̾� ��ũ��Ʈ ���� ������ �ʾƵ� TimeScale 0 ���п� ����
-        // ������ ��� �����̳� �ڷ�ƾ ���� ���� ó���� �ʿ��� �� ����
+        if (countdownBubble != null) countdownBubble.SetActive(true);
+
+        // 3 → 2 → 1 카운트다운 (각 숫자 오브젝트를 순서대로 표시)
+        for (int i = 0; i < countdownNumbers.Length; i++)
+        {
+            // 모든 숫자 비활성화 후 현재 숫자만 활성화
+            for (int j = 0; j < countdownNumbers.Length; j++)
+            {
+                if (countdownNumbers[j] != null)
+                    countdownNumbers[j].SetActive(j == i);
+            }
+
+            yield return new WaitForSecondsRealtime(1f);
+        }
+
+        if (countdownBubble != null) countdownBubble.SetActive(false);
+
+        // 게임 재개
+        isPaused = false;
+        isCountingDown = false;
+        Time.timeScale = 1f;
     }
 
     public void OnRetryBtnClicked()
