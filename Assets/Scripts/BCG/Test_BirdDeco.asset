@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 04087ea1dd8c96e4ea577c9c3cf29e05, type: 3}
+  m_Name: Test_BirdDeco
+  m_EditorClassIdentifier: 
+  prefab: {fileID: 6996160581689023509, guid: ec03a4ef689e9684e85beab4754213ac, type: 3}
+  yOffset: -2
+  spawnWeight: 5
