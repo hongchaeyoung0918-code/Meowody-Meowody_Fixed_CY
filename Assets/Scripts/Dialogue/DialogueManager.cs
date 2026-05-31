@@ -228,12 +228,45 @@ public class DialogueManager : MonoBehaviour
         {
             speakerEntry.characterObject.SetActive(true);
 
-            // 위치 결정 및 물리적 이동
+            // 위치 결정
             Transform targetAnchor = (evt.position == "Left") ? leftAnchor : rightAnchor;
             GameObject targetPanel = (evt.position == "Left") ? leftCharacterPanel : rightCharacterPanel;
 
-            speakerEntry.characterObject.transform.position = targetAnchor.position;
+            // 회전값 먼저 적용
             speakerEntry.characterObject.transform.rotation = targetAnchor.rotation;
+
+            // [핵심] 캐릭터의 전체 렌더러를 기반으로 가장 높은 Y값(머리 끝) 찾기
+            var renderers = speakerEntry.characterObject.GetComponentsInChildren<SpriteRenderer>();
+            if (renderers.Length > 0)
+            {
+                float highestY = float.MinValue;
+
+                // 모든 스프라이트의 상단 경계선(bounds.max.y) 중 가장 높은 곳을 구함
+                foreach (var r in renderers)
+                {
+                    if (r.bounds.max.y > highestY)
+                    {
+                        highestY = r.bounds.max.y;
+                    }
+                }
+
+                // 캐릭터 현재 위치에서 머리 끝까지의 Y축 거리(오프셋) 계산
+                float yOffset = highestY - speakerEntry.characterObject.transform.position.y;
+
+                // 앵커 위치에서 Y 오프셋만큼 아래로 내린 자리에 캐릭터를 배치 (머리 끝을 앵커에 고정)
+                Vector3 targetPosition = targetAnchor.position;
+                targetPosition.y -= yOffset;
+
+                // Z축은 아까 해결한 앵커의 Z값을 그대로 유지
+                targetPosition.z = targetAnchor.position.z;
+
+                speakerEntry.characterObject.transform.position = targetPosition;
+            }
+            else
+            {
+                // 스프라이트 렌더러가 없으면 예외 처리로 기본 앵커 위치 배치
+                speakerEntry.characterObject.transform.position = targetAnchor.position;
+            }
 
             targetPanel.SetActive(true);
             ApplyExpression(speakerEntry.animator, evt.expression);

@@ -187,6 +187,14 @@ PrefabInstance:
       value: 9
       objectReference: {fileID: 0}
     - target: {fileID: -7552582706839291426, guid: a179f369a42e4444e842cdf8e59c2141, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.8
+      objectReference: {fileID: 0}
+    - target: {fileID: -7552582706839291426, guid: a179f369a42e4444e842cdf8e59c2141, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.8
+      objectReference: {fileID: 0}
+    - target: {fileID: -7552582706839291426, guid: a179f369a42e4444e842cdf8e59c2141, type: 3}
       propertyPath: m_LocalPosition.x
       value: 23.11
       objectReference: {fileID: 0}
@@ -1353,7 +1361,7 @@ Transform:
   m_GameObject: {fileID: 493070558}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -11.550711, y: -13.977865, z: -10.658261}
+  m_LocalPosition: {x: -11.38, y: -13.977865, z: -10.658261}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1479,7 +1487,7 @@ Transform:
   m_GameObject: {fileID: 617374176}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 8.22, y: -17.86, z: 0}
+  m_LocalPosition: {x: 8.22, y: -8.86, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1787,8 +1795,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 40, y: -2}
-  m_SizeDelta: {x: 800, y: 1080}
+  m_AnchoredPosition: {x: 90, y: -2}
+  m_SizeDelta: {x: 900, y: 1080}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &991266281
 MonoBehaviour:
@@ -1874,7 +1882,7 @@ MonoBehaviour:
   - speakerKey: Kai
     characterObject: {fileID: 2091812564}
     animator: {fileID: 2091812565}
-  - speakerKey: Test
+  - speakerKey: Ari
     characterObject: {fileID: 1855427201}
     animator: {fileID: 0}
   dialogueBackgroundImage: {fileID: 5538293233759871555}
@@ -2261,8 +2269,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -40, y: -0}
-  m_SizeDelta: {x: 800, y: 1080}
+  m_AnchoredPosition: {x: -90, y: -0}
+  m_SizeDelta: {x: 900, y: 1080}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1075389425
 MonoBehaviour:
@@ -2897,11 +2905,42 @@ Transform:
   m_GameObject: {fileID: 1440712689}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -11.68, y: -18.95, z: 0}
+  m_LocalPosition: {x: -11.68, y: -9.95, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 629342752}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1585917872
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1585917873}
+  m_Layer: 9
+  m_Name: CamPivot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1585917873
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1585917872}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.89, y: 8.45, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2091812563}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1855427199
 PrefabInstance:
@@ -3460,7 +3499,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: -7552582706839291426, guid: e23bbb39b7a11c142a1e4fdc8f6532c0, type: 3}
+      insertIndex: 0
+      addedObject: {fileID: 1585917873}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: -8653719598885068355, guid: e23bbb39b7a11c142a1e4fdc8f6532c0, type: 3}
       insertIndex: -1
